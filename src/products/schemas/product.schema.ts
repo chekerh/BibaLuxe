@@ -1,0 +1,34 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+
+export type ProductDocument = Product & Document;
+
+@Schema({ timestamps: true })
+export class Product {
+  @Prop({ required: true })
+  name: string;
+
+  @Prop({ required: true })
+  price: number;
+
+  @Prop({ required: true })
+  description: string;
+
+  @Prop({ required: true })
+  category: string; // 'mattress' or 'furniture'
+
+  @Prop()
+  image: string;
+
+  @Prop()
+  model3d: string; // Path to 3D model file (.glb, .gltf)
+
+  @Prop({ type: Object })
+  specifications: Record<string, any>;
+
+  @Prop({ default: true })
+  inStock: boolean;
+}
+
+export const ProductSchema = SchemaFactory.createForClass(Product);
+
