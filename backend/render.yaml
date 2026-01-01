@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: mattress-store-backend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: PORT
+        value: 3001
+      - key: FRONTEND_URL
+        sync: false
+
