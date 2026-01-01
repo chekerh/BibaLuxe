@@ -1,0 +1,23 @@
+# Optional: GitHub Actions workflow to verify deployments
+# This is just a placeholder - not required for deployment
+
+name: Deployment Check
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check backend structure
+        run: |
+          test -f backend/package.json || exit 1
+          test -f backend/src/main.ts || exit 1
+      - name: Check frontend structure
+        run: |
+          test -f frontend/package.json || exit 1
+          test -f frontend/app/page.tsx || exit 1
+
