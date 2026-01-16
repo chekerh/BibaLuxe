@@ -122,7 +122,7 @@ async function bootstrap() {
       highlights: [
         toMultilingualTextDto('Performance leather that resists stains', 'جلد أداء يقاوم البقع', 'Cuir performant qui résiste aux taches'),
         toMultilingualTextDto('High-density foam cushions keep their shape', 'وسائد إسفنج عالية الكثافة تحافظ على شكلها', 'Les coussins en mousse haute densité gardent leur forme'),
-        toMultilingualTextDto('Configurable pieces adapt to any space', 'القطع القابلة للتكوين تتكيف مع أي مسpace'),
+        toMultilingualTextDto('Configurable pieces adapt to any space', 'القطع القابلة للتكوين تتكيف مع أي مسpace', 'Les pièces configurables s\'adaptent à tout espace'),
       ],
       rating: 4.7,
       reviewsCount: 384,

@@ -7,6 +7,7 @@ import { ProductsModule } from './products/products.module';
 import { AiChatModule } from './ai-chat/ai-chat.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { AuthModule } from './auth/auth.module';
     AiChatModule,
     UsersModule,
     AuthModule,
+    OrdersModule,
   ],
   providers: [
     // Security: Apply rate limiting globally
