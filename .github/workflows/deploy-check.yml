@@ -3,9 +3,9 @@ name: Pre-Deployment Checks
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ BibaLuxe, main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ BibaLuxe, main, develop ]
 
 jobs:
   backend-check:

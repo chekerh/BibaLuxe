@@ -1,0 +1,75 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [ BibaLuxe ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Pre-deployment checks
+  pre-deploy:
+    name: Pre-Deployment Checks
+    runs-on: ubuntu-latest
+    outputs:
+      backend-ready: ${{ steps.backend-check.outputs.ready }}
+      frontend-ready: ${{ steps.frontend-check.outputs.ready }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Backend build check
+        id: backend-check
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+        run: |
+          cd backend
+          npm ci
+          npm run build
+          echo "ready=true" >> $GITHUB_OUTPUT
+      
+      - name: Frontend build check
+        id: frontend-check
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+          echo "ready=true" >> $GITHUB_OUTPUT
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:3001' }}
+
+  # Deployment status notifications
+  deployment-status:
+    name: Deployment Status
+    runs-on: ubuntu-latest
+    needs: [pre-deploy]
+    if: always()
+    
+    steps:
+      - name: Deployment summary
+        run: |
+          echo "## 🚀 Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pre-deployment Checks" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: ${{ needs.pre-deploy.outputs.backend-ready }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: ${{ needs.pre-deploy.outputs.frontend-ready }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Platforms" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend**: Render (auto-deploy on push)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend**: Vercel (auto-deploy on push)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check Render dashboard for backend deployment" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check Vercel dashboard for frontend deployment" >> $GITHUB_STEP_SUMMARY
+          echo "3. Verify both services are healthy" >> $GITHUB_STEP_SUMMARY
