@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Spin } from 'antd';
+import { authApi } from '@/lib/api';
 
 interface AuthContextType {
   isLoggedIn: boolean;
@@ -18,23 +19,35 @@ export function AdminAuthWrapper({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('admin-token') : null;
-    const storedUser = typeof window !== 'undefined' ? localStorage.getItem('admin-user') : null;
+    const verifyToken = async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('admin-token') : null;
+      const storedUser = typeof window !== 'undefined' ? localStorage.getItem('admin-user') : null;
 
-    if (token && storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setIsLoggedIn(true);
-        setUser(parsedUser);
-      } catch (e) {
-        console.error("Failed to parse admin user from localStorage:", e);
-        typeof window !== 'undefined' && localStorage.removeItem('admin-token');
-        typeof window !== 'undefined' && localStorage.removeItem('admin-user');
-        setIsLoggedIn(false);
-        setUser(null);
+      if (token && storedUser) {
+        try {
+          // Verify token with backend
+          const profile = await authApi.getProfile();
+          const parsedUser = JSON.parse(storedUser);
+          
+          // Update user data from backend
+          setIsLoggedIn(true);
+          setUser({
+            username: profile.username || parsedUser.username,
+            role: profile.role || parsedUser.role || 'admin',
+          });
+        } catch (error) {
+          // Token is invalid or expired
+          console.error("Token verification failed:", error);
+          typeof window !== 'undefined' && localStorage.removeItem('admin-token');
+          typeof window !== 'undefined' && localStorage.removeItem('admin-user');
+          setIsLoggedIn(false);
+          setUser(null);
+        }
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    verifyToken();
   }, []);
 
   const pathname = usePathname();

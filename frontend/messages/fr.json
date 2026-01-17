@@ -172,7 +172,8 @@
     "nameOnCard": "Nom sur la carte",
     "placeOrder": "Passer la commande en toute sécurité",
     "securePayment": "Vos informations de paiement sont sécurisées et cryptées",
-    "qty": "Qté"
+    "qty": "Qté",
+    "orderSuccess": "Commande passée avec succès !"
   },
   "footer": {
     "tagline": "Matelas premium et mobilier artisanal conçus avec la science du sommeil.",
@@ -384,6 +385,103 @@
     "noThanks": "Non merci, je paierai le prix fort",
     "invalidEmail": "Veuillez entrer une adresse e-mail valide",
     "successMessage": "Merci ! Vérifiez votre e-mail pour votre code de réduction."
+  },
+  "orderTracking": {
+    "title": "Suivre votre commande",
+    "subtitle": "Entrez votre numéro de commande pour suivre votre expédition",
+    "placeholder": "Entrez le numéro de commande (par ex., BBL-123456)",
+    "tracking": "Suivi en cours...",
+    "trackOrder": "Suivre la commande",
+    "orderNumber": "Commande #",
+    "downloadLabel": "Télécharger l'étiquette d'expédition",
+    "contactSupport": "Contacter le support",
+    "needHelp": "Besoin d'aide ?",
+    "cantFindOrder": "Vous ne trouvez pas votre numéro de commande ?",
+    "checkEmail": "Vérifiez votre e-mail de confirmation ou contactez notre équipe de support à",
+    "expectedDelivery": "Temps de livraison prévu ?",
+    "deliveryInfo": "La plupart des commandes arrivent dans les 2-7 jours ouvrables. La livraison express est disponible pour certains articles."
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Tableau de bord administrateur",
+      "welcome": "Bienvenue sur le tableau de bord administrateur ! Utilisez la barre latérale pour naviguer dans les différentes sections."
+    },
+    "users": {
+      "title": "Gestion des utilisateurs",
+      "addNew": "Ajouter un nouvel utilisateur",
+      "fetchError": "Échec de la récupération des utilisateurs.",
+      "deleteSuccess": "Utilisateur supprimé avec succès.",
+      "deleteError": "Échec de la suppression de l'utilisateur.",
+      "table": {
+        "username": "Nom d'utilisateur",
+        "email": "E-mail",
+        "role": "Rôle",
+        "isActive": "Actif",
+        "actions": "Actions",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "deleteConfirmTitle": "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
+        "deleteConfirmDescription": "Cette action ne peut pas être annulée."
+      }
+    },
+    "products": {
+      "title": "Gestion des produits",
+      "addNew": "Ajouter un nouveau produit",
+      "fetchError": "Échec de la récupération des produits.",
+      "deleteSuccess": "Produit supprimé avec succès.",
+      "deleteError": "Échec de la suppression du produit.",
+      "table": {
+        "name": "Nom",
+        "category": "Catégorie",
+        "price": "Prix",
+        "stock": "Stock",
+        "actions": "Actions",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "deleteConfirmTitle": "Êtes-vous sûr de vouloir supprimer ce produit ?",
+        "deleteConfirmDescription": "Cette action ne peut pas être annulée."
+      }
+    },
+    "aiChat": {
+      "title": "Gestion du chat IA",
+      "addNew": "Ajouter une nouvelle entrée de chat IA",
+      "fetchError": "Échec de la récupération des entrées de chat IA.",
+      "deleteSuccess": "Entrée de chat IA supprimée avec succès.",
+      "deleteError": "Échec de la suppression de l'entrée de chat IA.",
+      "table": {
+        "question": "Question",
+        "category": "Catégorie",
+        "tags": "Tags",
+        "actions": "Actions",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "deleteConfirmTitle": "Êtes-vous sûr de vouloir supprimer cette entrée de chat IA ?",
+        "deleteConfirmDescription": "Cette action ne peut pas être annulée."
+      }
+    },
+    "analytics": {
+      "dashboardTitle": "Tableau de bord analytique",
+      "totalSales": "Ventes totales",
+      "newUsers": "Nouveaux utilisateurs",
+      "totalOrders": "Commandes totales",
+      "aiChatInteractions": "Interactions du chat IA",
+      "salesOverTime": "Ventes dans le temps",
+      "salesChart": {
+        "label": "Ventes",
+        "title": "Ventes mensuelles"
+      },
+      "productsByCategory": "Produits par catégorie",
+      "categoryChart": {
+        "label": "Produits",
+        "title": "Produits par catégorie",
+        "others": "Autres"
+      },
+      "websiteTraffic": "Trafic du site Web",
+      "trafficChart": {
+        "label": "Trafic",
+        "title": "Trafic hebdomadaire du site Web"
+      }
+    }
   }
 }
 

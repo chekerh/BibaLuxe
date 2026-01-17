@@ -30,7 +30,7 @@ export default function ProductFormPage() {
   };
 
   useEffect(() => {
-    if (id && id !== 'new') {
+    if (id && id !== 'new' && id !== 'edit') {
       setIsEditing(true);
       const fetchProduct = async () => {
         setLoading(true);

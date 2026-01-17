@@ -174,7 +174,23 @@
     "nameOnCard": "Name on Card",
     "placeOrder": "Place Order Securely",
     "securePayment": "Your payment information is secure and encrypted",
-    "qty": "Qty"
+    "qty": "Qty",
+    "orderSuccess": "Order placed successfully!"
+  },
+  "orderTracking": {
+    "title": "Track Your Order",
+    "subtitle": "Enter your order number to track your shipment",
+    "placeholder": "Enter order number (e.g., BBL-123456)",
+    "tracking": "Tracking...",
+    "trackOrder": "Track Order",
+    "orderNumber": "Order #",
+    "downloadLabel": "Download Shipping Label",
+    "contactSupport": "Contact Support",
+    "needHelp": "Need Help?",
+    "cantFindOrder": "Can't find your order number?",
+    "checkEmail": "Check your confirmation email or contact our support team at",
+    "expectedDelivery": "Expected delivery time?",
+    "deliveryInfo": "Most orders arrive within 2-7 business days. Express shipping available for select items."
   },
   "footer": {
     "tagline": "Premium mattresses and handcrafted furniture engineered with sleep science.",

@@ -39,8 +39,7 @@ export default function AdminProductsPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      // In a real application, you would call your backend API to delete the product
-      // For now, we'll simulate deletion from the frontend state.
+      await productsApi.delete(id);
       setProducts(products.filter(product => product._id !== id));
       message.success(t('admin.products.deleteSuccess'));
     } catch (error) {
@@ -89,7 +88,7 @@ export default function AdminProductsPage() {
       key: 'actions',
       render: (_: any, record: Product) => (
         <Space size="middle">
-          <Link href={`/admin/products/edit/${record._id}`}>
+          <Link href={`/admin/products/${record._id}`}>
             <Button icon={<EditOutlined />}>{t('admin.products.table.edit')}</Button>
           </Link>
           <Popconfirm
@@ -112,6 +111,9 @@ export default function AdminProductsPage() {
         <Title level={2}>{t('admin.products.title')}</Title>
         <Button type="primary" icon={<PlusOutlined />} style={{ marginBottom: 16 }}>
           <Link href="/admin/products/new">{t('admin.products.addNew')}</Link>
+        </Button>
+        <Button style={{ marginBottom: 16, marginLeft: 8 }} onClick={fetchProducts}>
+          Refresh
         </Button>
         <Table columns={columns} dataSource={products} rowKey="_id" loading={loading} />
       </div>

@@ -1,58 +1,56 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, Package, Truck, CheckCircle, Clock } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TrustBadges from '@/components/TrustBadges';
-
-interface TrackingStatus {
-  status: string;
-  date: string;
-  location: string;
-  description: string;
-}
+import { useI18n } from '@/contexts/I18nContext';
+import { ordersApi, TrackingInfo } from '@/lib/api';
+import { useToast } from '@/components/Toast';
 
 export default function OrderTrackingPage() {
+  const { t } = useI18n();
+  const { showToast } = useToast();
+  const searchParams = useSearchParams();
   const [orderId, setOrderId] = useState('');
-  const [trackingData, setTrackingData] = useState<TrackingStatus[] | null>(null);
+  const [trackingData, setTrackingData] = useState<TrackingInfo[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = async () => {
-    if (!orderId.trim()) return;
+  // Load order ID from URL params if present
+  useEffect(() => {
+    const orderIdParam = searchParams?.get('orderId');
+    if (orderIdParam) {
+      setOrderId(orderIdParam);
+      handleSearch(orderIdParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  const handleSearch = async (orderNumber?: string) => {
+    const orderNum = orderNumber || orderId.trim();
+    if (!orderNum) return;
 
     setIsSearching(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setError(null);
 
-    // Mock tracking data
-    setTrackingData([
-      {
-        status: 'Order Placed',
-        date: '2024-01-15',
-        location: 'BibaLuxe Warehouse',
-        description: 'Your order has been confirmed and payment processed.',
-      },
-      {
-        status: 'Processing',
-        date: '2024-01-16',
-        location: 'BibaLuxe Warehouse',
-        description: 'Your order is being prepared for shipment.',
-      },
-      {
-        status: 'Shipped',
-        date: '2024-01-17',
-        location: 'In Transit',
-        description: 'Your order has left our warehouse and is on its way.',
-      },
-      {
-        status: 'Out for Delivery',
-        date: '2024-01-19',
-        location: 'Local Distribution Center',
-        description: 'Your order is out for delivery today.',
-      },
-    ]);
-    setIsSearching(false);
+    try {
+      const order = await ordersApi.trackOrder(orderNum);
+      setTrackingData(order.trackingHistory || []);
+      setOrderId(order.orderNumber);
+    } catch (err: any) {
+      console.error('Failed to fetch order:', err);
+      setError(err.response?.data?.message || 'Order not found. Please check your order number.');
+      setTrackingData(null);
+      showToast(
+        err.response?.data?.message || 'Order not found. Please check your order number.',
+        'error'
+      );
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const getStatusIcon = (status: string, index: number, total: number) => {
@@ -68,10 +66,10 @@ export default function OrderTrackingPage() {
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-12 pt-32">
         <h1 className="text-4xl md:text-5xl font-bold text-black mb-4 text-center">
-          Track Your Order
+          {t('orderTracking.title')}
         </h1>
         <p className="text-gray-600 text-center mb-8">
-          Enter your order number to track your shipment
+          {t('orderTracking.subtitle')}
         </p>
 
         {/* Search Form */}
@@ -84,26 +82,33 @@ export default function OrderTrackingPage() {
                 value={orderId}
                 onChange={(e) => setOrderId(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="Enter order number (e.g., BBL-123456)"
+                placeholder={t('orderTracking.placeholder')}
                 className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 text-black"
               />
             </div>
             <button
-              onClick={handleSearch}
+              onClick={() => handleSearch()}
               disabled={isSearching || !orderId.trim()}
               className="px-8 py-4 bg-green-600 text-white rounded-full font-semibold hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSearching ? 'Tracking...' : 'Track Order'}
+              {isSearching ? t('orderTracking.tracking') : t('orderTracking.trackOrder')}
             </button>
           </div>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-8">
+            <p className="text-red-800 text-center">{error}</p>
+          </div>
+        )}
+
         {/* Tracking Results */}
-        {trackingData && (
+        {trackingData && trackingData.length > 0 && (
           <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg">
             <div className="flex items-center gap-3 mb-6">
               <Package className="w-6 h-6 text-green-600" />
-              <h2 className="text-2xl font-bold text-black">Order #{orderId}</h2>
+              <h2 className="text-2xl font-bold text-black">{t('orderTracking.orderNumber')}{orderId}</h2>
             </div>
 
             <div className="relative">
@@ -132,10 +137,10 @@ export default function OrderTrackingPage() {
             <div className="mt-8 pt-8 border-t border-gray-200">
               <div className="flex flex-col sm:flex-row gap-4">
                 <button className="flex-1 px-6 py-3 bg-gray-100 text-black rounded-full hover:bg-gray-200 transition-colors font-medium">
-                  Download Shipping Label
+                  {t('orderTracking.downloadLabel')}
                 </button>
                 <button className="flex-1 px-6 py-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors font-medium">
-                  Contact Support
+                  {t('orderTracking.contactSupport')}
                 </button>
               </div>
             </div>
@@ -145,21 +150,21 @@ export default function OrderTrackingPage() {
         {/* Help Section */}
         {!trackingData && (
           <div className="bg-gray-50 rounded-2xl p-8 border border-gray-200">
-            <h3 className="text-xl font-bold text-black mb-4">Need Help?</h3>
+            <h3 className="text-xl font-bold text-black mb-4">{t('orderTracking.needHelp')}</h3>
             <div className="space-y-4">
               <div>
-                <p className="font-semibold text-black mb-2">Can't find your order number?</p>
+                <p className="font-semibold text-black mb-2">{t('orderTracking.cantFindOrder')}</p>
                 <p className="text-gray-600 text-sm">
-                  Check your confirmation email or contact our support team at{' '}
+                  {t('orderTracking.checkEmail')}{' '}
                   <a href="mailto:support@bibaluxe.com" className="text-green-600 hover:underline">
                     support@bibaluxe.com
                   </a>
                 </p>
               </div>
               <div>
-                <p className="font-semibold text-black mb-2">Expected delivery time?</p>
+                <p className="font-semibold text-black mb-2">{t('orderTracking.expectedDelivery')}</p>
                 <p className="text-gray-600 text-sm">
-                  Most orders arrive within 2-7 business days. Express shipping available for select items.
+                  {t('orderTracking.deliveryInfo')}
                 </p>
               </div>
             </div>

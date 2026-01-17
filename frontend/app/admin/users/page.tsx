@@ -2,38 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, message, Popconfirm, Tag, Typography } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, PlusOutlined, EyeOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import AdminLayout from '@/app/admin/layout';
 import { useI18n } from '@/contexts/I18nContext';
+import { usersApi, User } from '@/lib/api';
 
 const { Title } = Typography;
-
-// Placeholder API for User Management - replace with actual backend integration
-interface User {
-  _id: string;
-  username: string;
-  email: string;
-  role: 'admin' | 'customer';
-  isActive: boolean;
-}
-
-const userApi = {
-  getAll: async (): Promise<User[]> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return [
-      { _id: 'u1', username: 'admin', email: 'admin@example.com', role: 'admin', isActive: true },
-      { _id: 'u2', username: 'john.doe', email: 'john.doe@example.com', role: 'customer', isActive: true },
-      { _id: 'u3', username: 'jane.smith', email: 'jane.smith@example.com', role: 'customer', isActive: false },
-    ];
-  },
-  remove: async (id: string): Promise<void> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 300));
-    console.log(`Simulating deletion of user with ID: ${id}`);
-  },
-};
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -43,10 +18,10 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const fetchedUsers = await userApi.getAll();
+      const fetchedUsers = await usersApi.getAll();
       setUsers(fetchedUsers);
     } catch (error) {
-      message.error(t('admin.users.fetchError'));
+      message.error(t('admin.users.fetchError') || 'Failed to fetch users');
       console.error('Failed to fetch users:', error);
     } finally {
       setLoading(false);
@@ -59,11 +34,11 @@ export default function AdminUsersPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      await userApi.remove(id);
+      await usersApi.delete(id);
       setUsers(users.filter(user => user._id !== id));
-      message.success(t('admin.users.deleteSuccess'));
+      message.success(t('admin.users.deleteSuccess') || 'User deleted successfully');
     } catch (error) {
-      message.error(t('admin.users.deleteError'));
+      message.error(t('admin.users.deleteError') || 'Failed to delete user');
       console.error('Failed to delete user:', error);
     }
   };
@@ -100,17 +75,20 @@ export default function AdminUsersPage() {
       key: 'actions',
       render: (_: any, record: User) => (
         <Space size="middle">
-          <Link href={`/admin/users/edit/${record._id}`}>
-            <Button icon={<EditOutlined />}>{t('admin.users.table.edit')}</Button>
+          <Link href={`/admin/users/${record._id}`}>
+            <Button icon={<EyeOutlined />}>View</Button>
+          </Link>
+          <Link href={`/admin/users/${record._id}`}>
+            <Button icon={<EditOutlined />}>{t('admin.users.table.edit') || 'Edit'}</Button>
           </Link>
           <Popconfirm
-            title={t('admin.users.table.deleteConfirmTitle')}
-            description={t('admin.users.table.deleteConfirmDescription')}
+            title={t('admin.users.table.deleteConfirmTitle') || 'Delete User'}
+            description={t('admin.users.table.deleteConfirmDescription') || 'Are you sure you want to delete this user?'}
             onConfirm={() => handleDelete(record._id)}
-            okText={t('common.yes')}
-            cancelText={t('common.no')}
+            okText={t('common.yes') || 'Yes'}
+            cancelText={t('common.no') || 'No'}
           >
-            <Button danger icon={<DeleteOutlined />}>{t('admin.users.table.delete')}</Button>
+            <Button danger icon={<DeleteOutlined />}>{t('admin.users.table.delete') || 'Delete'}</Button>
           </Popconfirm>
         </Space>
       ),

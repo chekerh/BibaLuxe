@@ -1,143 +1,181 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, message, Card, Typography, Switch, Select, Popconfirm } from 'antd';
+import {
+  Card,
+  Descriptions,
+  Tag,
+  Button,
+  Space,
+  message,
+  Form,
+  Input,
+  Select,
+  Switch,
+  Typography,
+  Table,
+} from 'antd';
+import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import { useRouter, useParams } from 'next/navigation';
 import AdminLayout from '@/app/admin/layout';
-import { useI18n } from '@/contexts/I18nContext';
+import { usersApi, User, ordersApi, Order } from '@/lib/api';
 
 const { Title } = Typography;
 const { Option } = Select;
 
-// Placeholder API for User Management - replace with actual backend integration
-interface User {
-  _id: string;
-  username: string;
-  email: string;
-  role: 'admin' | 'customer';
-  isActive: boolean;
-}
-
-const userApi = {
-  getById: async (id: string): Promise<User> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const data: User[] = [
-      { _id: 'u1', username: 'admin', email: 'admin@example.com', role: 'admin', isActive: true },
-      { _id: 'u2', username: 'john.doe', email: 'john.doe@example.com', role: 'customer', isActive: true },
-      { _id: 'u3', username: 'jane.smith', email: 'jane.smith@example.com', role: 'customer', isActive: false },
-    ];
-    const user = data.find(item => item._id === id);
-    if (!user) throw new Error('User not found');
-    return user;
-  },
-  create: async (payload: any): Promise<User> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    console.log('Simulating user creation:', payload);
-    return { _id: String(Math.random()), ...payload };
-  },
-  update: async (id: string, payload: any): Promise<User> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    console.log(`Simulating update of user ${id}:`, payload);
-    return { _id: id, ...payload };
-  },
-};
-
-export default function UserFormPage() {
+export default function UserDetailPage() {
+  const [user, setUser] = useState<User | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [form] = Form.useForm();
   const router = useRouter();
   const params = useParams();
   const { id } = params as { id: string };
-  const [loading, setLoading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const { t } = useI18n();
 
   useEffect(() => {
-    if (id && id !== 'new') {
-      setIsEditing(true);
-      const fetchUser = async () => {
-        setLoading(true);
-        try {
-          const user = await userApi.getById(id);
-          form.setFieldsValue(user);
-        } catch (error) {
-          message.error(t('admin.users.fetchDetailsError'));
-          console.error('Failed to fetch user details:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchUser();
-    }
-  }, [id]);
-
-  const onFinish = async (values: any) => {
-    setLoading(true);
-    try {
-      if (isEditing) {
-        await userApi.update(id, values);
-        message.success(t('admin.users.updateSuccess'));
-      } else {
-        await userApi.create(values);
-        message.success(t('admin.users.createSuccess'));
+    const fetchData = async () => {
+      try {
+        const userData = await usersApi.getById(id);
+        setUser(userData);
+        form.setFieldsValue({
+          username: userData.username,
+          email: userData.email,
+          role: userData.role,
+          isActive: userData.isActive,
+        });
+        
+        // Fetch orders and filter by user email
+        const allOrders = await ordersApi.getAll();
+        const userOrders = allOrders.filter((order) => order.shippingAddress.email === userData.email);
+        setOrders(userOrders);
+      } catch (error) {
+        message.error('Failed to fetch user details');
+        console.error('Failed to fetch user:', error);
+        router.push('/admin/users');
+      } finally {
+        setLoading(false);
       }
-      router.push('/admin/users');
+    };
+
+    if (id) {
+      fetchData();
+    }
+  }, [id, router, form]);
+
+  const handleUpdate = async (values: any) => {
+    if (!user) return;
+
+    try {
+      const updatedUser = await usersApi.update(user._id, values);
+      setUser(updatedUser);
+      message.success('User updated successfully');
     } catch (error) {
-      message.error(t('admin.users.saveError'));
-      console.error('Failed to save user:', error);
-    } finally {
-      setLoading(false);
+      message.error('Failed to update user');
+      console.error('Failed to update user:', error);
     }
   };
 
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div>Loading...</div>
+      </AdminLayout>
+    );
+  }
+
+  if (!user) {
+    return (
+      <AdminLayout>
+        <div>User not found</div>
+      </AdminLayout>
+    );
+  }
+
+  const ordersColumns = [
+    {
+      title: 'Order Number',
+      dataIndex: 'orderNumber',
+      key: 'orderNumber',
+    },
+    {
+      title: 'Total',
+      dataIndex: 'total',
+      key: 'total',
+      render: (total: number) => `$${total.toFixed(2)}`,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => {
+        const colorMap: Record<string, string> = {
+          pending: 'orange',
+          processing: 'blue',
+          shipped: 'cyan',
+          delivered: 'green',
+          cancelled: 'red',
+        };
+        return <Tag color={colorMap[status] || 'default'}>{status.toUpperCase()}</Tag>;
+      },
+    },
+    {
+      title: 'Date',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date: string) => (date ? new Date(date).toLocaleDateString() : '-'),
+    },
+  ];
+
   return (
     <AdminLayout>
-      <Card>
-        <Title level={2}>{isEditing ? t('admin.users.editTitle') : t('admin.users.createTitle')}</Title>
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={onFinish}
-          initialValues={{ role: 'customer', isActive: true }}
-        >
-          <Form.Item name="username" label={t('admin.users.form.username')} rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
+      <div style={{ padding: 24 }}>
+        <Space style={{ marginBottom: 16 }}>
+          <Button icon={<ArrowLeftOutlined />} onClick={() => router.push('/admin/users')}>
+            Back to Users
+          </Button>
+        </Space>
 
-          <Form.Item name="email" label={t('admin.users.form.email')} rules={[{ required: true, type: 'email' }]}>
-            <Input />
-          </Form.Item>
+        <Title level={2}>User Details - {user.username}</Title>
 
-          {!isEditing && (
-            <Form.Item name="password" label={t('admin.users.form.password')} rules={[{ required: true }]}>
-              <Input.Password />
+        <Card style={{ marginBottom: 16 }}>
+          <Form form={form} layout="vertical" onFinish={handleUpdate}>
+            <Form.Item label="Username" name="username" rules={[{ required: true }]}>
+              <Input />
             </Form.Item>
-          )}
 
-          <Form.Item name="role" label={t('admin.users.form.role')} rules={[{ required: true }]}>
-            <Select>
-              <Option value="admin">Admin</Option>
-              <Option value="customer">Customer</Option>
-            </Select>
-          </Form.Item>
+            <Form.Item label="Email" name="email" rules={[{ required: true, type: 'email' }]}>
+              <Input />
+            </Form.Item>
 
-          <Form.Item name="isActive" label={t('admin.users.form.isActive')} valuePropName="checked">
-            <Switch />
-          </Form.Item>
+            <Form.Item label="Role" name="role" rules={[{ required: true }]}>
+              <Select>
+                <Option value="admin">Admin</Option>
+                <Option value="customer">Customer</Option>
+              </Select>
+            </Form.Item>
 
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} style={{ marginRight: 8 }}>
-              {isEditing ? t('admin.users.form.updateUser') : t('admin.users.form.createUser')}
-            </Button>
-            <Button onClick={() => router.push('/admin/users')}>
-              {t('common.cancel')}
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
+            <Form.Item label="Active" name="isActive" valuePropName="checked">
+              <Switch />
+            </Form.Item>
+
+            <Form.Item>
+              <Button type="primary" icon={<SaveOutlined />} htmlType="submit">
+                Save Changes
+              </Button>
+            </Form.Item>
+          </Form>
+        </Card>
+
+        <Card>
+          <Title level={4}>Order History</Title>
+          <Table
+            columns={ordersColumns}
+            dataSource={orders}
+            rowKey="_id"
+            pagination={{ pageSize: 10 }}
+          />
+        </Card>
+      </div>
     </AdminLayout>
   );
 }
-

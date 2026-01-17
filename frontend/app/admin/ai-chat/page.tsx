@@ -6,58 +6,19 @@ import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import AdminLayout from '@/app/admin/layout';
 import { useI18n } from '@/contexts/I18nContext';
+import { aiChatApi, AiChatEntry, LocalizedString } from '@/lib/api';
 
 const { Title } = Typography;
-
-// Placeholder API for AI Chat - replace with actual backend integration
-interface AiChatEntry {
-  _id: string;
-  question: string;
-  answer: { en: string; ar?: string; fr?: string };
-  tags?: string[];
-  categories?: string[];
-  isActive: boolean;
-}
-
-const aiChatApi = {
-  getAll: async (locale?: string): Promise<AiChatEntry[]> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const data: AiChatEntry[] = [
-      {
-        _id: '1',
-        question: 'What is your return policy?',
-        answer: { en: 'Our return policy allows returns within 30 days.', ar: 'سياسة الإرجاع لدينا تسمح بالإرجاع خلال 30 يومًا.', fr: 'Notre politique de retour permet les retours dans les 30 jours.' },
-        tags: ['returns', 'policy'],
-        categories: ['customer service'],
-        isActive: true,
-      },
-      {
-        _id: '2',
-        question: 'How do I track my order?',
-        answer: { en: 'You can track your order using the link in your confirmation email.', ar: 'يمكنك تتبع طلبك باستخدام الرابط الموجود في رسالة تأكيد البريد الإلكتروني.', fr: 'Vous pouvez suivre votre commande via le lien dans votre e-mail de confirmation.' },
-        tags: ['order', 'tracking'],
-        categories: ['shipping'],
-        isActive: true,
-      },
-    ];
-    return data.map(entry => ({ ...entry, answer: entry.answer[locale as keyof typeof entry.answer] || entry.answer.en }));
-  },
-  remove: async (id: string): Promise<void> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 300));
-    console.log(`Simulating deletion of AI Chat entry with ID: ${id}`);
-  },
-};
 
 export default function AdminAiChatPage() {
   const [aiChatEntries, setAiChatEntries] = useState<AiChatEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { t, locale } = useI18n();
 
-  const getLocalized = (obj: { [key: string]: string } | string | undefined, defaultVal: string = '') => {
+  const getLocalized = (obj: LocalizedString | string | undefined, defaultVal: string = '') => {
     if (typeof obj === 'string') return obj;
-    return obj?.[locale] || defaultVal;
+    if (!obj) return defaultVal;
+    return obj[locale as keyof LocalizedString] || obj.en || defaultVal;
   };
 
   const fetchAiChatEntries = async () => {
@@ -66,7 +27,7 @@ export default function AdminAiChatPage() {
       const fetchedEntries = await aiChatApi.getAll(locale);
       setAiChatEntries(fetchedEntries);
     } catch (error) {
-      message.error(t('admin.aiChat.fetchError'));
+      message.error(t('admin.aiChat.fetchError') || 'Failed to fetch AI Chat entries');
       console.error('Failed to fetch AI Chat entries:', error);
     } finally {
       setLoading(false);
@@ -79,11 +40,11 @@ export default function AdminAiChatPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      await aiChatApi.remove(id);
+      await aiChatApi.delete(id);
       setAiChatEntries(aiChatEntries.filter(entry => entry._id !== id));
-      message.success(t('admin.aiChat.deleteSuccess'));
+      message.success(t('admin.aiChat.deleteSuccess') || 'AI Chat entry deleted successfully');
     } catch (error) {
-      message.error(t('admin.aiChat.deleteError'));
+      message.error(t('admin.aiChat.deleteError') || 'Failed to delete AI Chat entry');
       console.error('Failed to delete AI Chat entry:', error);
     }
   };
@@ -95,10 +56,13 @@ export default function AdminAiChatPage() {
       key: 'question',
     },
     {
-      title: t('admin.aiChat.table.answer'),
+      title: t('admin.aiChat.table.answer') || 'Answer',
       dataIndex: 'answer',
       key: 'answer',
-      render: (answer: { en: string; ar?: string; fr?: string } | string) => getLocalized(answer, answer.en),
+      render: (answer: LocalizedString | string) => {
+        const answerText = getLocalized(answer, '');
+        return <div style={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis' }}>{answerText}</div>;
+      },
     },
     {
       title: t('admin.aiChat.table.tags'),
@@ -139,17 +103,17 @@ export default function AdminAiChatPage() {
       key: 'actions',
       render: (_: any, record: AiChatEntry) => (
         <Space size="middle">
-          <Link href={`/admin/ai-chat/edit/${record._id}`}>
-            <Button icon={<EditOutlined />}>{t('admin.aiChat.table.edit')}</Button>
+          <Link href={`/admin/ai-chat/${record._id}`}>
+            <Button icon={<EditOutlined />}>{t('admin.aiChat.table.edit') || 'Edit'}</Button>
           </Link>
           <Popconfirm
-            title={t('admin.aiChat.table.deleteConfirmTitle')}
-            description={t('admin.aiChat.table.deleteConfirmDescription')}
+            title={t('admin.aiChat.table.deleteConfirmTitle') || 'Delete Entry'}
+            description={t('admin.aiChat.table.deleteConfirmDescription') || 'Are you sure you want to delete this entry?'}
             onConfirm={() => handleDelete(record._id)}
-            okText={t('common.yes')}
-            cancelText={t('common.no')}
+            okText={t('common.yes') || 'Yes'}
+            cancelText={t('common.no') || 'No'}
           >
-            <Button danger icon={<DeleteOutlined />}>{t('admin.aiChat.table.delete')}</Button>
+            <Button danger icon={<DeleteOutlined />}>{t('admin.aiChat.table.delete') || 'Delete'}</Button>
           </Popconfirm>
         </Space>
       ),

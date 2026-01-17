@@ -10,11 +10,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from '@/components/Toast';
 import { useI18n } from '@/contexts/I18nContext';
+import { ordersApi } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart } = useCart();
   const { showToast } = useToast();
   const { t } = useI18n();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<'shipping' | 'payment' | 'review'>('shipping');
   const [formData, setFormData] = useState({
     firstName: '',
@@ -59,10 +63,53 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate order processing
-    showToast('Order placed successfully!', 'success');
-    clearCart();
-    // Redirect to order confirmation
+    setIsSubmitting(true);
+
+    try {
+      // Transform cart items to order items
+      const orderItems = items.map((item) => ({
+        productId: item._id,
+        productName: typeof item.name === 'string' ? item.name : item.name.en || '',
+        quantity: item.quantity,
+        price: item.price,
+        image: item.image,
+      }));
+
+      // Create order
+      const order = await ordersApi.create({
+        shippingAddress: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          country: formData.country,
+        },
+        items: orderItems,
+        subtotal,
+        shipping,
+        tax,
+        total,
+        paymentMethod: formData.paymentMethod,
+      });
+
+      showToast(t('checkout.orderSuccess'), 'success');
+      clearCart();
+      
+      // Redirect to order tracking with order number
+      router.push(`/order-tracking?orderId=${order.orderNumber}`);
+    } catch (error: any) {
+      console.error('Order creation failed:', error);
+      showToast(
+        error.response?.data?.message || 'Failed to place order. Please try again.',
+        'error'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -273,10 +320,11 @@ export default function CheckoutPage() {
 
               <button
                 onClick={handleSubmit}
-                className="w-full px-6 py-4 bg-green-600 text-white rounded-full font-semibold hover:bg-green-700 transition-all flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className="w-full px-6 py-4 bg-green-600 text-white rounded-full font-semibold hover:bg-green-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Lock className="w-5 h-5" />
-                {t('checkout.placeOrder')}
+                {isSubmitting ? t('common.loading') : t('checkout.placeOrder')}
               </button>
 
               <p className="text-xs text-gray-500 text-center mt-4">

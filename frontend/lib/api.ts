@@ -22,20 +22,49 @@ function getCurrentLocale(): string {
   return 'en';
 }
 
+// Helper to get JWT token from localStorage
+function getAuthToken(): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  try {
+    return localStorage.getItem('admin-token');
+  } catch (e) {
+    console.warn('Could not access localStorage:', e);
+    return null;
+  }
+}
+
+// Helper to clear auth token
+function clearAuthToken(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('admin-token');
+    localStorage.removeItem('admin-user');
+  }
+}
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest', // CSRF protection indicator
   },
-  timeout: 10000, // 10 second timeout
-  withCredentials: false, // Security: Don't send cookies cross-origin unless needed
+  timeout: 30000, // 30 second timeout for Render free tier
+  withCredentials: true, // Match backend CORS credentials: true
 });
 
-// Add request interceptor for debugging
+// Add request interceptor for JWT token and debugging
 api.interceptors.request.use(
   (config) => {
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    // Add JWT token to all requests if available
+    const token = getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    }
     return config;
   },
   (error) => {
@@ -54,7 +83,24 @@ api.interceptors.response.use(
     }
     return response;
   },
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Handle 401 Unauthorized - token expired or invalid
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      // Clear invalid token
+      clearAuthToken();
+      
+      // Redirect to login if not already there
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/admin/login')) {
+        window.location.href = '/admin/login';
+      }
+      
+      return Promise.reject(error);
+    }
+
     // Security: Don't expose sensitive error details in production
     if (process.env.NODE_ENV === 'production') {
       if (error.response?.status >= 500) {
@@ -273,5 +319,261 @@ export const productsApi = {
   update: async (id: string, productData: Partial<Product>): Promise<Product> => {
     const response = await api.patch(`/products/${id}`, productData);
     return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/products/${id}`);
+  },
+};
+
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+  image?: string;
+}
+
+export interface ShippingAddress {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
+export interface TrackingInfo {
+  status: string;
+  date: string;
+  location: string;
+  description: string;
+}
+
+export interface Order {
+  _id: string;
+  orderNumber: string;
+  shippingAddress: ShippingAddress;
+  items: OrderItem[];
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  total: number;
+  status: string;
+  paymentStatus: string;
+  paymentMethod?: string;
+  trackingHistory: TrackingInfo[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateOrderDto {
+  shippingAddress: ShippingAddress;
+  items: OrderItem[];
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  total: number;
+  paymentMethod?: string;
+}
+
+export const ordersApi = {
+  getAll: async (status?: string, paymentStatus?: string): Promise<Order[]> => {
+    const params: Record<string, string> = {};
+    if (status) params.status = status;
+    if (paymentStatus) params.paymentStatus = paymentStatus;
+    const response = await api.get('/orders', { params });
+    return response.data;
+  },
+
+  create: async (orderData: CreateOrderDto): Promise<Order> => {
+    const response = await api.post('/orders', orderData);
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<Order> => {
+    const response = await api.get(`/orders/${id}`);
+    return response.data;
+  },
+
+  trackOrder: async (orderNumber: string): Promise<Order> => {
+    const response = await api.get(`/orders/track/${orderNumber}`);
+    return response.data;
+  },
+
+  updateStatus: async (id: string, status: string, trackingInfo?: TrackingInfo): Promise<Order> => {
+    const response = await api.patch(`/orders/${id}/status`, { status, trackingInfo });
+    return response.data;
+  },
+
+  updatePaymentStatus: async (id: string, paymentStatus: string): Promise<Order> => {
+    const response = await api.patch(`/orders/${id}/payment-status`, { paymentStatus });
+    return response.data;
+  },
+};
+
+// Auth API
+export interface LoginDto {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  access_token: string;
+}
+
+export const authApi = {
+  login: async (credentials: LoginDto): Promise<LoginResponse> => {
+    const response = await api.post('/auth/login', credentials);
+    return response.data;
+  },
+
+  getProfile: async (): Promise<any> => {
+    const response = await api.get('/auth/profile');
+    return response.data;
+  },
+};
+
+// Stats API
+export interface DashboardStats {
+  totalOrders: number;
+  totalProducts: number;
+  totalUsers: number;
+  totalRevenue: number;
+  pendingOrders: number;
+  paidOrders: number;
+  recentOrders: Order[];
+  lowStockProducts: number;
+}
+
+export interface SalesDataPoint {
+  date: string;
+  revenue: number;
+  orders: number;
+}
+
+export const statsApi = {
+  getDashboardStats: async (): Promise<DashboardStats> => {
+    const response = await api.get('/stats/dashboard');
+    return response.data;
+  },
+
+  getSalesData: async (days: number = 30): Promise<SalesDataPoint[]> => {
+    const response = await api.get('/stats/sales', { params: { days } });
+    return response.data;
+  },
+};
+
+// Users API
+export interface User {
+  _id: string;
+  username: string;
+  email: string;
+  role: 'admin' | 'customer';
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateUserDto {
+  username: string;
+  email: string;
+  password: string;
+  role?: 'admin' | 'customer';
+  isActive?: boolean;
+}
+
+export interface UpdateUserDto {
+  username?: string;
+  email?: string;
+  password?: string;
+  role?: 'admin' | 'customer';
+  isActive?: boolean;
+}
+
+export const usersApi = {
+  getAll: async (): Promise<User[]> => {
+    const response = await api.get('/users');
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<User> => {
+    const response = await api.get(`/users/${id}`);
+    return response.data;
+  },
+
+  create: async (userData: CreateUserDto): Promise<User> => {
+    const response = await api.post('/users', userData);
+    return response.data;
+  },
+
+  update: async (id: string, userData: UpdateUserDto): Promise<User> => {
+    const response = await api.patch(`/users/${id}`, userData);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/users/${id}`);
+  },
+};
+
+// AI Chat API
+export interface AiChatEntry {
+  _id: string;
+  question: string;
+  answer: LocalizedString;
+  tags?: string[];
+  categories?: string[];
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateAiChatDto {
+  question: string;
+  answer: LocalizedString;
+  tags?: string[];
+  categories?: string[];
+  isActive?: boolean;
+}
+
+export interface UpdateAiChatDto {
+  question?: string;
+  answer?: LocalizedString;
+  tags?: string[];
+  categories?: string[];
+  isActive?: boolean;
+}
+
+export const aiChatApi = {
+  getAll: async (locale?: string): Promise<AiChatEntry[]> => {
+    const params: Record<string, string> = {};
+    if (locale) params.locale = locale;
+    const response = await api.get('/ai-chat', { params });
+    return response.data;
+  },
+
+  getById: async (id: string, locale?: string): Promise<AiChatEntry> => {
+    const params: Record<string, string> = {};
+    if (locale) params.locale = locale;
+    const response = await api.get(`/ai-chat/${id}`, { params });
+    return response.data;
+  },
+
+  create: async (data: CreateAiChatDto): Promise<AiChatEntry> => {
+    const response = await api.post('/ai-chat', data);
+    return response.data;
+  },
+
+  update: async (id: string, data: UpdateAiChatDto): Promise<AiChatEntry> => {
+    const response = await api.patch(`/ai-chat/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/ai-chat/${id}`);
   },
 };

@@ -4,6 +4,7 @@ import { Button, Form, Input, Card, Typography, message } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
+import { authApi } from '@/lib/api';
 
 const { Title } = Typography;
 
@@ -13,24 +14,25 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const { login } = useAdminAuth();
 
-  const onFinish = async (values: any) => {
-    console.log("onFinish triggered", values);
+  const onFinish = async (values: { username: string; password: string }) => {
     setLoading(true);
     try {
-      if (values.username === 'admin' && values.password === 'password') {
-        message.success('Login successful!');
-        console.log("Calling login function");
-        login('fake-admin-token', values.username, 'admin');
-      } else {
-        message.error('Invalid username or password.');
-        console.log("Invalid credentials");
-      }
-    } catch (error) {
-      message.error('An error occurred during login.');
+      const response = await authApi.login({
+        username: values.username,
+        password: values.password,
+      });
+      
+      // Get user profile to get role
+      const profile = await authApi.getProfile();
+      
+      message.success('Login successful!');
+      login(response.access_token, profile.username, profile.role || 'admin');
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Invalid username or password.';
+      message.error(errorMessage);
       console.error('Login error:', error);
     } finally {
       setLoading(false);
-      console.log("Login process finished");
     }
   };
 
