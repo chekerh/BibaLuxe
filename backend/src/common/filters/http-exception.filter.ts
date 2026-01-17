@@ -17,6 +17,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
+    // Handle OPTIONS requests (CORS preflight) - don't log as errors
+    if (request.method === 'OPTIONS') {
+      // CORS middleware should handle this, but if it reaches here, return proper CORS headers
+      response.header('Access-Control-Allow-Origin', request.headers.origin || '*');
+      response.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS, PUT');
+      response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+      response.header('Access-Control-Allow-Credentials', 'true');
+      return response.status(204).send();
+    }
+
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
     let error: string | object = 'Internal Server Error';
@@ -36,8 +46,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
         error = message;
       }
     } else if (exception instanceof Error) {
-      message = exception.message;
-      error = exception.message;
+      // Check if it's a CORS error
+      if (exception.message.includes('CORS') || exception.message.includes('Not allowed by CORS')) {
+        status = HttpStatus.FORBIDDEN;
+        message = 'CORS policy: Access denied';
+        error = 'CORS Error';
+      } else {
+        message = exception.message;
+        error = exception.message;
+      }
     }
 
     // Log error details

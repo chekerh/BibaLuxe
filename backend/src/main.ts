@@ -40,14 +40,17 @@ async function bootstrap() {
       if (allowedOrigins.includes(origin) || (isDevelopment && process.env.NODE_ENV === 'development')) {
         callback(null, true);
       } else {
+        // For OPTIONS requests (preflight), still allow them but log the rejection
         callback(new Error('Not allowed by CORS'));
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS', 'PUT'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
     exposedHeaders: ['Content-Length', 'X-Request-Id'],
     maxAge: 86400, // 24 hours
+    preflightContinue: false,
+    optionsSuccessStatus: 204, // Some legacy browsers (IE11, various SmartTVs) choke on 204
   });
 
   // Global exception filter for consistent error responses

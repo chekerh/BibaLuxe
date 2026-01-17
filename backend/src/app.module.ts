@@ -9,6 +9,8 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { OrdersModule } from './orders/orders.module';
 import { StatsModule } from './stats/stats.module';
+import { HealthModule } from './health/health.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { StatsModule } from './stats/stats.module';
     AuthModule,
     OrdersModule,
     StatsModule,
+    HealthModule,
+    MetricsModule,
   ],
   providers: [
     // Security: Apply rate limiting globally
