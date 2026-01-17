@@ -48,14 +48,14 @@ export default function UserDetailPage() {
         const allOrders = await ordersApi.getAll();
         const userOrders = allOrders.filter((order) => order.shippingAddress.email === userData.email);
         setOrders(userOrders);
-      } catch (error) {
+        } catch (error) {
         message.error('Failed to fetch user details');
         console.error('Failed to fetch user:', error);
         router.push('/admin/users');
-      } finally {
-        setLoading(false);
-      }
-    };
+        } finally {
+          setLoading(false);
+        }
+      };
 
     if (id) {
       fetchData();
@@ -140,31 +140,31 @@ export default function UserDetailPage() {
         <Card style={{ marginBottom: 16 }}>
           <Form form={form} layout="vertical" onFinish={handleUpdate}>
             <Form.Item label="Username" name="username" rules={[{ required: true }]}>
-              <Input />
-            </Form.Item>
+            <Input />
+          </Form.Item>
 
             <Form.Item label="Email" name="email" rules={[{ required: true, type: 'email' }]}>
-              <Input />
+            <Input />
             </Form.Item>
 
             <Form.Item label="Role" name="role" rules={[{ required: true }]}>
-              <Select>
-                <Option value="admin">Admin</Option>
-                <Option value="customer">Customer</Option>
-              </Select>
-            </Form.Item>
+            <Select>
+              <Option value="admin">Admin</Option>
+              <Option value="customer">Customer</Option>
+            </Select>
+          </Form.Item>
 
             <Form.Item label="Active" name="isActive" valuePropName="checked">
-              <Switch />
-            </Form.Item>
+            <Switch />
+          </Form.Item>
 
-            <Form.Item>
+          <Form.Item>
               <Button type="primary" icon={<SaveOutlined />} htmlType="submit">
                 Save Changes
-              </Button>
-            </Form.Item>
-          </Form>
-        </Card>
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
 
         <Card>
           <Title level={4}>Order History</Title>

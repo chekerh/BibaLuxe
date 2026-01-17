@@ -63,7 +63,7 @@ api.interceptors.request.use(
     }
     
     if (process.env.NODE_ENV === 'development') {
-      console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
     }
     return config;
   },

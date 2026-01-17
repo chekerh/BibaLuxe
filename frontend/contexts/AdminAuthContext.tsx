@@ -20,17 +20,17 @@ export function AdminAuthWrapper({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const verifyToken = async () => {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('admin-token') : null;
-      const storedUser = typeof window !== 'undefined' ? localStorage.getItem('admin-user') : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('admin-token') : null;
+    const storedUser = typeof window !== 'undefined' ? localStorage.getItem('admin-user') : null;
 
-      if (token && storedUser) {
-        try {
+    if (token && storedUser) {
+      try {
           // Verify token with backend
           const profile = await authApi.getProfile();
-          const parsedUser = JSON.parse(storedUser);
+        const parsedUser = JSON.parse(storedUser);
           
           // Update user data from backend
-          setIsLoggedIn(true);
+        setIsLoggedIn(true);
           setUser({
             username: profile.username || parsedUser.username,
             role: profile.role || parsedUser.role || 'admin',
@@ -38,13 +38,13 @@ export function AdminAuthWrapper({ children }: { children: ReactNode }) {
         } catch (error) {
           // Token is invalid or expired
           console.error("Token verification failed:", error);
-          typeof window !== 'undefined' && localStorage.removeItem('admin-token');
-          typeof window !== 'undefined' && localStorage.removeItem('admin-user');
-          setIsLoggedIn(false);
-          setUser(null);
-        }
+        typeof window !== 'undefined' && localStorage.removeItem('admin-token');
+        typeof window !== 'undefined' && localStorage.removeItem('admin-user');
+        setIsLoggedIn(false);
+        setUser(null);
       }
-      setLoading(false);
+    }
+    setLoading(false);
     };
 
     verifyToken();

@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
       // Get user profile to get role
       const profile = await authApi.getProfile();
       
-      message.success('Login successful!');
+        message.success('Login successful!');
       login(response.access_token, profile.username, profile.role || 'admin');
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Invalid username or password.';

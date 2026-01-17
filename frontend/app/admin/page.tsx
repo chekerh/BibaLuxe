@@ -187,7 +187,7 @@ export default function AdminDashboardPage() {
       </AdminLayout>
     );
   }
-
+  
   return (
     <AdminLayout>
       <div style={{ padding: 24 }}>

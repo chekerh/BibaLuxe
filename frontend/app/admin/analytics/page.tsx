@@ -74,13 +74,13 @@ export default function AdminAnalyticsPage() {
           const date = new Date(d.date);
           return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         }),
-        datasets: [
-          {
+    datasets: [
+      {
             label: t('admin.analytics.salesChart.label') || 'Revenue',
             data: salesData.map((d: any) => d.revenue),
-            fill: true,
-            backgroundColor: 'rgba(75,192,192,0.2)',
-            borderColor: 'rgba(75,192,192,1)',
+        fill: true,
+        backgroundColor: 'rgba(75,192,192,0.2)',
+        borderColor: 'rgba(75,192,192,1)',
             tension: 0.1,
           },
           {
@@ -90,8 +90,8 @@ export default function AdminAnalyticsPage() {
             backgroundColor: 'rgba(255,99,132,0.2)',
             borderColor: 'rgba(255,99,132,1)',
             tension: 0.1,
-          },
-        ],
+      },
+    ],
       }
     : null;
 

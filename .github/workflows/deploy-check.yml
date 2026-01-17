@@ -1,23 +1,123 @@
-# Optional: GitHub Actions workflow to verify deployments
-# This is just a placeholder - not required for deployment
-
-name: Deployment Check
+# Enhanced pre-deployment checks with comprehensive validation
+name: Pre-Deployment Checks
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
 
 jobs:
-  check:
+  backend-check:
+    name: Backend Checks
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand(\"ping\").ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+      
       - name: Check backend structure
         run: |
-          test -f backend/package.json || exit 1
-          test -f backend/src/main.ts || exit 1
+          test -f package.json || exit 1
+          test -f src/main.ts || exit 1
+          test -f src/app.module.ts || exit 1
+      
+      - name: Type check
+        run: npx tsc --noEmit
+      
+      - name: Build
+        run: npm run build
+        env:
+          MONGODB_URI: mongodb://localhost:27017/test
+      
+      - name: Verify build output
+        run: test -d dist || exit 1
+      
+      - name: Security audit
+        run: npm audit --audit-level=moderate || true
+
+  frontend-check:
+    name: Frontend Checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+      
       - name: Check frontend structure
         run: |
-          test -f frontend/package.json || exit 1
-          test -f frontend/app/page.tsx || exit 1
+          test -f package.json || exit 1
+          test -f app/page.tsx || exit 1
+          test -d messages || exit 1
+      
+      - name: Type check
+        run: npx tsc --noEmit
+      
+      - name: Lint
+        run: npm run lint || true
+      
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+      
+      - name: Verify build output
+        run: test -d .next || exit 1
+      
+      - name: Security audit
+        run: npm audit --audit-level=moderate || true
 
+  translation-check:
+    name: Translation Completeness
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check translation files exist
+        run: |
+          test -f messages/en.json || exit 1
+          test -f messages/ar.json || exit 1
+          test -f messages/fr.json || exit 1
+      
+      - name: Verify translation structure
+        run: |
+          node -e "const fs=require('fs');const en=JSON.parse(fs.readFileSync('messages/en.json','utf8'));const ar=JSON.parse(fs.readFileSync('messages/ar.json','utf8'));const fr=JSON.parse(fs.readFileSync('messages/fr.json','utf8'));function gk(o,p=''){let k=[];for(const kk in o){const fk=p?\`\${p}.\${kk}\`:kk;if(typeof o[kk]==='object'&&!Array.isArray(o[kk])){k=k.concat(gk(o[kk],fk));}else{k.push(fk);}}return k;}const ek=gk(en).sort();const ak=gk(ar).sort();const fk=gk(fr).sort();const ma=ek.filter(k=>!ak.includes(k));const mf=ek.filter(k=>!fk.includes(k));if(ma.length>0){console.error('Missing in ar.json:',ma);process.exit(1);}if(mf.length>0){console.error('Missing in fr.json:',mf);process.exit(1);}console.log('All translation keys present!');"

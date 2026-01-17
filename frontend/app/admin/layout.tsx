@@ -68,36 +68,36 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
   };
 
   const menuItems = [
-    {
+            {
       key: '/admin',
-      icon: <DashboardOutlined />,
-      label: <Link href="/admin">Dashboard</Link>,
-    },
-    {
+              icon: <DashboardOutlined />,
+              label: <Link href="/admin">Dashboard</Link>,
+            },
+            {
       key: '/admin/orders',
       icon: <ShoppingCartOutlined />,
       label: <Link href="/admin/orders">Orders</Link>,
     },
     {
       key: '/admin/products',
-      icon: <ShoppingOutlined />,
-      label: <Link href="/admin/products">Products</Link>,
-    },
-    {
+              icon: <ShoppingOutlined />,
+              label: <Link href="/admin/products">Products</Link>,
+            },
+            {
       key: '/admin/users',
-      icon: <UserOutlined />,
-      label: <Link href="/admin/users">Users</Link>,
-    },
-    {
+              icon: <UserOutlined />,
+              label: <Link href="/admin/users">Users</Link>,
+            },
+            {
       key: '/admin/ai-chat',
-      icon: <MessageOutlined />,
-      label: <Link href="/admin/ai-chat">AI Chat</Link>,
-    },
-    {
+              icon: <MessageOutlined />,
+              label: <Link href="/admin/ai-chat">AI Chat</Link>,
+            },
+            {
       key: '/admin/analytics',
-      icon: <BarChartOutlined />,
-      label: <Link href="/admin/analytics">Analytics</Link>,
-    },
+              icon: <BarChartOutlined />,
+              label: <Link href="/admin/analytics">Analytics</Link>,
+            },
   ];
 
   const userMenuItems = [
