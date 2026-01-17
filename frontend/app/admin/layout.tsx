@@ -37,9 +37,9 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
   } = theme.useToken();
 
   // Get breadcrumb items from pathname
-  const getBreadcrumbItems = () => {
+  const getBreadcrumbItems = (): Array<{ title: React.ReactNode }> => {
     const paths = pathname.split('/').filter(Boolean);
-    const items = [{ title: <Link href="/admin">Dashboard</Link> }];
+    const items: Array<{ title: React.ReactNode }> = [{ title: <Link href="/admin">Dashboard</Link> }];
     
     if (paths.length > 1) {
       const section = paths[1];

@@ -16,8 +16,14 @@ import { useRouter } from 'next/navigation';
 export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart } = useCart();
   const { showToast } = useToast();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
+  
+  // Helper to get localized name
+  const getName = (name: string | { en: string; ar?: string; fr?: string }): string => {
+    if (typeof name === 'string') return name;
+    return name[locale as keyof typeof name] || name.en || '';
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<'shipping' | 'payment' | 'review'>('shipping');
   const [formData, setFormData] = useState({
@@ -275,7 +281,7 @@ export default function CheckoutPage() {
                       <div className="w-16 h-16 relative rounded-lg overflow-hidden flex-shrink-0">
                         <Image
                           src={item.image}
-                          alt={item.name}
+                          alt={getName(item.name)}
                           fill
                           sizes="64px"
                           className="object-cover"
@@ -289,7 +295,7 @@ export default function CheckoutPage() {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-black truncate">{item.name}</p>
+                      <p className="font-semibold text-black truncate">{getName(item.name)}</p>
                       <p className="text-sm text-gray-600">{t('checkout.qty')}: {item.quantity}</p>
                       <p className="text-green-600 font-semibold">
                         ${(item.price * item.quantity).toFixed(2)}

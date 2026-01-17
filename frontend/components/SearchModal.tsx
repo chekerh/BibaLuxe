@@ -6,6 +6,7 @@ import { Product } from '@/lib/api';
 import { productsApi } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -17,6 +18,20 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { locale } = useI18n();
+  
+  // Helper to get localized name
+  const getName = (name: string | { en: string; ar?: string; fr?: string }): string => {
+    if (typeof name === 'string') return name;
+    return name[locale as keyof typeof name] || name.en || '';
+  };
+  
+  // Helper to get localized value
+  const getLocalized = (value: string | { en: string; ar?: string; fr?: string } | undefined, defaultVal: string = ''): string => {
+    if (!value) return defaultVal;
+    if (typeof value === 'string') return value;
+    return value[locale as keyof typeof value] || value.en || defaultVal;
+  };
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -35,11 +50,19 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
       try {
         const allProducts = await productsApi.getAll();
         const filtered = allProducts.filter(
-          (p) =>
-            p.name.toLowerCase().includes(query.toLowerCase()) ||
-            p.description.toLowerCase().includes(query.toLowerCase()) ||
-            p.tagline?.toLowerCase().includes(query.toLowerCase()) ||
-            p.highlights?.some((h) => h.toLowerCase().includes(query.toLowerCase()))
+          (p) => {
+            const nameStr = getName(p.name).toLowerCase();
+            const descStr = getLocalized(p.description as any).toLowerCase();
+            const taglineStr = getLocalized(p.tagline).toLowerCase();
+            const queryLower = query.toLowerCase();
+            
+            return (
+              nameStr.includes(queryLower) ||
+              descStr.includes(queryLower) ||
+              taglineStr.includes(queryLower) ||
+              p.highlights?.some((h) => getLocalized(h).toLowerCase().includes(queryLower))
+            );
+          }
         );
         setResults(filtered.slice(0, 6));
       } catch (error) {
@@ -99,7 +122,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         <div className="w-16 h-16 relative rounded-lg overflow-hidden flex-shrink-0">
                           <Image
                             src={product.image}
-                            alt={product.name}
+                            alt={getName(product.name)}
                             fill
                             className="object-cover"
                           />
@@ -113,9 +136,9 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                       )}
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-black group-hover:text-green-600 transition-colors truncate">
-                          {product.name}
+                          {getName(product.name)}
                         </h3>
-                        <p className="text-sm text-gray-600 truncate">{product.tagline}</p>
+                        <p className="text-sm text-gray-600 truncate">{getLocalized(product.tagline)}</p>
                         <p className="text-lg font-bold text-green-600">${product.price.toFixed(2)}</p>
                       </div>
                       <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors flex-shrink-0" />

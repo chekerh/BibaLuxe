@@ -10,7 +10,13 @@ import { useI18n } from '@/contexts/I18nContext';
 export default function Cart() {
   const [isOpen, setIsOpen] = useState(false);
   const { items, removeFromCart, updateQuantity, getTotalPrice, getTotalItems } = useCart();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  
+  // Helper to get localized name
+  const getName = (name: string | { en: string; ar?: string; fr?: string }): string => {
+    if (typeof name === 'string') return name;
+    return name[locale as keyof typeof name] || name.en || '';
+  };
 
   return (
     <>
@@ -66,7 +72,7 @@ export default function Cart() {
                         <div className="w-20 h-20 relative rounded-lg overflow-hidden flex-shrink-0">
                           <Image
                             src={item.image}
-                            alt={item.name}
+                            alt={getName(item.name)}
                             fill
                             className="object-cover"
                           />
@@ -79,7 +85,7 @@ export default function Cart() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-black truncate">{item.name}</h3>
+                        <h3 className="font-semibold text-black truncate">{getName(item.name)}</h3>
                         <p className="text-sm text-gray-600">${item.price.toFixed(2)} {t('common.each')}</p>
                         <div className="flex items-center gap-2 mt-2">
                           <button

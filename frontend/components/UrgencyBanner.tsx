@@ -44,6 +44,7 @@ export default function UrgencyBanner() {
     // Update visitor count periodically
     const visitorTimer = setInterval(() => {
       setVisitorCount((prev) => {
+        if (prev === null) return 20; // Default value if null
         const change = Math.floor(Math.random() * 5) - 2;
         return Math.max(15, Math.min(80, prev + change));
       });

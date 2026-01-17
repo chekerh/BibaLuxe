@@ -46,16 +46,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prevItems) => {
       const existingItem = prevItems.find((item) => item._id === product._id);
       
+      // Helper to get product name for toast
+      const getProductName = (name: string | { en: string; ar?: string; fr?: string }): string => {
+        if (typeof name === 'string') return name;
+        return name.en || '';
+      };
+      
       if (existingItem) {
         const updated = prevItems.map((item) =>
           item._id === product._id
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
-        showToast(`${product.name} quantity updated in cart`, 'success');
+        showToast(`${getProductName(product.name)} quantity updated in cart`, 'success');
         return updated;
       } else {
-        showToast(`${product.name} added to cart`, 'success');
+        showToast(`${getProductName(product.name)} added to cart`, 'success');
         return [...prevItems, { ...product, quantity }];
       }
     });
@@ -65,7 +71,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prevItems) => {
       const item = prevItems.find((i) => i._id === productId);
       if (item) {
-        showToast(`${item.name} removed from cart`, 'info');
+        const getName = (name: string | { en: string; ar?: string; fr?: string }): string => {
+          if (typeof name === 'string') return name;
+          return name.en || '';
+        };
+        showToast(`${getName(item.name)} removed from cart`, 'info');
       }
       return prevItems.filter((item) => item._id !== productId);
     });

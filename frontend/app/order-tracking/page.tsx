@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search, Package, Truck, CheckCircle, Clock } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -10,7 +10,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { ordersApi, TrackingInfo } from '@/lib/api';
 import { useToast } from '@/components/Toast';
 
-export default function OrderTrackingPage() {
+function OrderTrackingContent() {
   const { t } = useI18n();
   const { showToast } = useToast();
   const searchParams = useSearchParams();
@@ -176,3 +176,17 @@ export default function OrderTrackingPage() {
   );
 }
 
+export default function OrderTrackingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <OrderTrackingContent />
+    </Suspense>
+  );
+}

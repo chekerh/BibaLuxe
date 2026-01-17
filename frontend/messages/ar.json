@@ -32,7 +32,9 @@
     "startShopping": "ابدأ التسوق",
     "proceedToCheckout": "المتابعة إلى الدفع",
     "continueShopping": "متابعة التسوق",
-    "each": "لكل"
+    "each": "لكل",
+    "yes": "نعم",
+    "no": "لا"
   },
   "home": {
     "heroTitle": "نم أعمق. عش أفضل.",

@@ -17,7 +17,21 @@ export default function ProductComparison({
   onRemove,
   onClose,
 }: ProductComparisonProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, locale } = useI18n();
+  
+  // Helper to get localized name
+  const getName = (name: string | { en: string; ar?: string; fr?: string }): string => {
+    if (typeof name === 'string') return name;
+    return name[locale as keyof typeof name] || name.en || '';
+  };
+  
+  // Helper to get localized value
+  const getLocalized = (value: string | { en: string; ar?: string; fr?: string } | undefined, defaultVal: string = ''): string => {
+    if (!value) return defaultVal;
+    if (typeof value === 'string') return value;
+    return value[locale as keyof typeof value] || value.en || defaultVal;
+  };
+  
   if (products.length === 0) return null;
 
   const features = [
@@ -67,7 +81,7 @@ export default function ProductComparison({
                         <div className="w-24 h-24 relative rounded-lg overflow-hidden">
                           <Image
                             src={product.image}
-                            alt={product.name}
+                            alt={getName(product.name)}
                             fill
                             className="object-cover"
                           />
@@ -79,7 +93,7 @@ export default function ProductComparison({
                           </span>
                         </div>
                       )}
-                      <h3 className="font-semibold text-black text-sm">{product.name}</h3>
+                      <h3 className="font-semibold text-black text-sm">{getName(product.name)}</h3>
                       <p className="text-lg font-bold text-green-600">${product.price.toFixed(2)}</p>
                     </div>
                   </th>
@@ -122,7 +136,7 @@ export default function ProductComparison({
                 <td className={`p-4 font-semibold text-black border-b border-gray-100 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>{t('productComparison.shipping')}</td>
                 {products.map((product) => (
                   <td key={product._id} className="p-4 text-center border-b border-gray-100">
-                    <p className="text-sm text-gray-600">{product.shippingInfo || t('productComparison.notAvailable')}</p>
+                    <p className="text-sm text-gray-600">{getLocalized(product.shippingInfo) || t('productComparison.notAvailable')}</p>
                   </td>
                 ))}
               </tr>
@@ -161,7 +175,7 @@ export default function ProductComparison({
                     <td key={product._id} className="p-4 border-b border-gray-100">
                       <ul className="text-sm text-gray-600 space-y-1">
                         {product.highlights?.slice(0, 3).map((highlight, i) => (
-                          <li key={i}>• {highlight}</li>
+                          <li key={i}>• {getLocalized(highlight)}</li>
                         ))}
                       </ul>
                     </td>

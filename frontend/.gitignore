@@ -40,5 +40,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Ignore markdown files
-*.md
+# Next.js cache
+.next/cache
+.swc
+
+# Turbopack
+.turbo
+
+# ESLint cache
+.eslintcache

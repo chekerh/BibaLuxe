@@ -32,7 +32,9 @@
     "startShopping": "Commencer à magasiner",
     "proceedToCheckout": "Passer à la caisse",
     "continueShopping": "Continuer les achats",
-    "each": "chaque"
+    "each": "chaque",
+    "yes": "Oui",
+    "no": "Non"
   },
   "home": {
     "heroTitle": "Dormez mieux. Vivez mieux.",

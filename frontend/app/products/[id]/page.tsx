@@ -245,7 +245,7 @@ export default function ProductDetailPage() {
                     {Object.entries(product.specifications).map(([key, value]) => (
                       <div key={key} className="flex justify-between items-center border-b border-gray-200 pb-3 last:border-0 last:pb-0">
                         <dt className="font-medium text-gray-700 capitalize">
-                          {t(`product.specifications.${key}`, key.replace(/([A-Z])/g, ' $1').trim())}
+                          {t(`product.specifications.${key}` as any) || key.replace(/([A-Z])/g, ' $1').trim()}
                         </dt>
                         <dd className="text-gray-900 font-semibold">{getLocalized(value, value.en)}</dd>
                       </div>

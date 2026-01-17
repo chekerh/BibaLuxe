@@ -21,10 +21,23 @@ export default function QuickViewModal({
   isOpen,
   onClose,
 }: QuickViewModalProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, locale } = useI18n();
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
   const [selectedImage, setSelectedImage] = useState(0);
+  
+  // Helper to get localized name
+  const getName = (name: string | { en: string; ar?: string; fr?: string }): string => {
+    if (typeof name === 'string') return name;
+    return name[locale as keyof typeof name] || name.en || '';
+  };
+  
+  // Helper to get localized value
+  const getLocalized = (value: string | { en: string; ar?: string; fr?: string } | undefined, defaultVal: string = ''): string => {
+    if (!value) return defaultVal;
+    if (typeof value === 'string') return value;
+    return value[locale as keyof typeof value] || value.en || defaultVal;
+  };
 
   if (!isOpen) return null;
 
@@ -59,7 +72,7 @@ export default function QuickViewModal({
                 {product.image ? (
                   <Image
                     src={images[selectedImage] || product.image}
-                    alt={product.name}
+                    alt={getName(product.name)}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover"
@@ -86,7 +99,7 @@ export default function QuickViewModal({
                     >
                       <Image
                         src={img}
-                        alt={`${product.name} ${index + 1}`}
+                        alt={`${getName(product.name)} ${index + 1}`}
                         width={80}
                         height={80}
                         className="object-cover w-full h-full"
@@ -102,9 +115,9 @@ export default function QuickViewModal({
               <span className="inline-block px-3 py-1 bg-gray-100 text-black rounded-full text-xs font-semibold uppercase mb-4">
                 {product.category}
               </span>
-              <h1 className="text-3xl font-bold text-black mb-2">{product.name}</h1>
+              <h1 className="text-3xl font-bold text-black mb-2">{getName(product.name)}</h1>
               {product.tagline && (
-                <p className="text-lg text-gray-600 mb-4">{product.tagline}</p>
+                <p className="text-lg text-gray-600 mb-4">{getLocalized(product.tagline)}</p>
               )}
 
               {/* Rating */}
@@ -146,7 +159,7 @@ export default function QuickViewModal({
                     {product.highlights.slice(0, 4).map((highlight, index) => (
                       <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
                         <span className="text-green-600">✓</span>
-                        <span>{highlight}</span>
+                        <span>{getLocalized(highlight)}</span>
                       </li>
                     ))}
                   </ul>

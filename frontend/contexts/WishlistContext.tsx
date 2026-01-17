@@ -38,11 +38,17 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
 
   const addToWishlist = (product: Product) => {
     setItems((prevItems) => {
+      // Helper to get product name for toast
+      const getProductName = (name: string | { en: string; ar?: string; fr?: string }): string => {
+        if (typeof name === 'string') return name;
+        return name.en || '';
+      };
+      
       if (prevItems.some((item) => item._id === product._id)) {
-        showToast(`${product.name} is already in your wishlist`, 'info');
+        showToast(`${getProductName(product.name)} is already in your wishlist`, 'info');
         return prevItems;
       }
-      showToast(`${product.name} added to wishlist`, 'success');
+      showToast(`${getProductName(product.name)} added to wishlist`, 'success');
       return [...prevItems, product];
     });
   };
@@ -51,7 +57,11 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     setItems((prevItems) => {
       const item = prevItems.find((i) => i._id === productId);
       if (item) {
-        showToast(`${item.name} removed from wishlist`, 'info');
+        const getName = (name: string | { en: string; ar?: string; fr?: string }): string => {
+          if (typeof name === 'string') return name;
+          return name.en || '';
+        };
+        showToast(`${getName(item.name)} removed from wishlist`, 'info');
       }
       return prevItems.filter((item) => item._id !== productId);
     });

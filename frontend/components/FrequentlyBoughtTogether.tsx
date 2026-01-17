@@ -14,7 +14,14 @@ export default function FrequentlyBoughtTogether({
   mainProduct,
   relatedProducts,
 }: FrequentlyBoughtTogetherProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  
+  // Helper to get localized name
+  const getName = (name: string | { en: string; ar?: string; fr?: string }): string => {
+    if (typeof name === 'string') return name;
+    return name[locale as keyof typeof name] || name.en || '';
+  };
+  
   if (relatedProducts.length === 0) return null;
 
   const totalPrice = mainProduct.price + relatedProducts.reduce((sum, p) => sum + p.price, 0);
@@ -34,7 +41,7 @@ export default function FrequentlyBoughtTogether({
               <div className="w-24 h-24 bg-gray-100 rounded-lg mx-auto mb-3 flex items-center justify-center">
                 <span className="text-3xl">🛏️</span>
               </div>
-              <p className="text-sm font-semibold text-black">{mainProduct.name}</p>
+              <p className="text-sm font-semibold text-black">{getName(mainProduct.name)}</p>
               <p className="text-lg font-bold text-green-600">${mainProduct.price.toFixed(2)}</p>
             </div>
 
@@ -52,7 +59,7 @@ export default function FrequentlyBoughtTogether({
                       </span>
                     </div>
                     <p className="text-xs font-semibold text-black line-clamp-2 mb-1">
-                      {product.name}
+                      {getName(product.name)}
                     </p>
                     <p className="text-sm font-bold text-green-600">${product.price.toFixed(2)}</p>
                   </div>

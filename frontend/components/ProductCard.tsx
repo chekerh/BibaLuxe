@@ -53,15 +53,15 @@ export default function ProductCard({
     e.stopPropagation();
     addToCart({
       _id: id,
-      name: getLocalized(name, name.en),
-      tagline: getLocalized(tagline, tagline?.en),
+      name: name, // Keep as LocalizedString
+      tagline: tagline,
       price,
-      description: getLocalized(tagline, tagline?.en) || '', // Use localized tagline for description
+      description: tagline || { en: '', ar: '', fr: '' }, // Use tagline as description
       category,
       image,
       rating,
       reviewsCount,
-      shippingInfo: getLocalized(shippingInfo, shippingInfo?.en),
+      shippingInfo: shippingInfo,
       inStock,
       specifications: {},
     });
@@ -72,15 +72,15 @@ export default function ProductCard({
     e.stopPropagation();
     const product = {
       _id: id,
-      name: getLocalized(name, name.en),
-      tagline: getLocalized(tagline, tagline?.en),
+      name: name, // Keep as LocalizedString
+      tagline: tagline,
       price,
-      description: getLocalized(tagline, tagline?.en) || '', // Use localized tagline for description
+      description: tagline || { en: '', ar: '', fr: '' }, // Use tagline as description
       category,
       image,
       rating,
       reviewsCount,
-      shippingInfo: getLocalized(shippingInfo, shippingInfo?.en),
+      shippingInfo: shippingInfo,
       inStock,
       specifications: {},
     };
@@ -199,15 +199,15 @@ export default function ProductCard({
       <QuickViewModal
         product={{
           _id: id,
-          name: getLocalized(name, name.en),
-          tagline: getLocalized(tagline, tagline?.en),
+          name: name, // Keep as LocalizedString
+          tagline: tagline,
           price,
-          description: getLocalized(tagline, tagline?.en) || '',
+          description: tagline || { en: '', ar: '', fr: '' },
           category,
           image,
           rating,
           reviewsCount,
-          shippingInfo: getLocalized(shippingInfo, shippingInfo?.en),
+          shippingInfo: shippingInfo,
           inStock,
           specifications: {},
         }}
