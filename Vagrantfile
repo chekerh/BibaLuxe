@@ -2,14 +2,28 @@
 # This file must be in your project root: /Users/mac/stehabiba/stehabibawebapp
 
 Vagrant.configure("2") do |config|
-  # Use Ubuntu 22.04 LTS
-  config.vm.box = "ubuntu/jammy64"
+  # Detect Mac architecture
+  # For Apple Silicon (ARM) Macs, use generic/ubuntu2204
+  # For Intel Macs, use ubuntu/jammy64
+  
+  # Use ARM-compatible box for Apple Silicon Macs
+  config.vm.box = "generic/ubuntu2204"
+  
+  # Alternative: If you have Parallels installed (better for ARM Macs)
+  # config.vm.box = "parallels/ubuntu-22.04"
+  # config.vm.provider "parallels" do |prl|
+  #   prl.name = "bibaluxe-dev"
+  #   prl.memory = 4096
+  #   prl.cpus = 2
+  # end
 
-  # VM Configuration (Mac with VirtualBox)
+  # VM Configuration
+  # Note: VirtualBox on ARM Macs has limitations, consider Parallels or UTM
   config.vm.provider "virtualbox" do |vb|
     vb.name = "bibaluxe-dev"
     vb.memory = "4096"   # 4GB RAM
     vb.cpus = 2
+    # For ARM Macs, VirtualBox may not work well - see troubleshooting
   end
 
   # Port Forwarding: VM ports → your Mac

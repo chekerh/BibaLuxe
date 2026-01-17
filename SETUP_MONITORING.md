@@ -77,7 +77,34 @@ vagrant up
 
 **What this does:** Downloads the VM image (first time only), creates the VM, and runs provisioning. It can take several minutes the first time.
 
-**When it’s done:** You should see a message like “Vagrant VM is ready” or the prompt back.
+**⚠️ Apple Silicon (M1/M2/M3) Mac Users:**
+
+If you get an error like "platform architecture x86 is not supported on ARM", you have two options:
+
+**Option A: Use Parallels (Recommended for ARM Macs)**
+
+1. Install Parallels Desktop: https://www.parallels.com/
+2. Install Vagrant Parallels plugin:
+   ```bash
+   vagrant plugin install vagrant-parallels
+   ```
+3. Update Vagrantfile to use Parallels (uncomment the Parallels section)
+4. Run `vagrant up`
+
+**Option B: Use UTM (Free Alternative)**
+
+1. Install UTM: https://mac.getutm.app/
+2. Create a new VM manually with Ubuntu 22.04 ARM
+3. Or use Vagrant with UTM provider (more complex setup)
+
+**Option C: Use Docker Desktop (Easiest for Kubernetes)**
+
+Since you're using Kubernetes anyway, you might want to skip Vagrant and use Docker Desktop's built-in Kubernetes:
+1. Install Docker Desktop: https://www.docker.com/products/docker-desktop
+2. Enable Kubernetes in Docker Desktop settings
+3. Skip Vagrant setup and go directly to Kubernetes Setup section
+
+**When it's done:** You should see a message like "Vagrant VM is ready" or the prompt back.
 
 ### 0.5 Check Vagrant status
 
