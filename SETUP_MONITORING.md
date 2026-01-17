@@ -1,14 +1,15 @@
-# Complete Monitoring & CI/CD Setup Guide
+# Complete Monitoring & CI/CD Setup Guide (Mac + Vagrant)
 
-This is a **beginner-friendly, step-by-step guide** to set up all monitoring and CI/CD tools for the BibaLuxe project. Every command is explained in detail.
+This is a **beginner-friendly, step-by-step guide** to set up all monitoring and CI/CD tools for the BibaLuxe project using **Vagrant on Mac**. Every command shows **where to run it** and the **full path**.
 
 ---
 
 ## 📋 Table of Contents
 
-1. [Prerequisites](#prerequisites)
-2. [What Each Tool Does](#what-each-tool-does)
-3. [Kubernetes Setup](#kubernetes-setup)
+1. [Step 0: Create Vagrantfile and Start Vagrant (Do This First)](#step-0-create-vagrantfile-and-start-vagrant-do-this-first)
+2. [Prerequisites](#prerequisites)
+3. [What Each Tool Does](#what-each-tool-does)
+4. [Kubernetes Setup](#kubernetes-setup)
 4. [Prometheus Setup](#prometheus-setup)
 5. [Grafana Setup](#grafana-setup)
 6. [SonarQube Setup](#sonarqube-setup)
@@ -17,35 +18,138 @@ This is a **beginner-friendly, step-by-step guide** to set up all monitoring and
 
 ---
 
+## Step 0: Create Vagrantfile and Start Vagrant (Do This First)
+
+You must have a **Vagrantfile** in your project folder before `vagrant status` or `vagrant up` will work. Follow these steps on your **Mac**.
+
+### 0.1 Open Terminal on your Mac
+
+- Open **Terminal** (Applications → Utilities → Terminal, or press `Cmd+Space` and type "Terminal").
+
+### 0.2 Go to your project folder
+
+**Where to run:** On your Mac, in Terminal.
+
+```bash
+cd /Users/mac/stehabiba/stehabibawebapp
+```
+
+**What this does:** `cd` = change directory. This is your project root (where the `k8s` folder and `Vagrantfile` live).
+
+**Check you’re in the right place:**
+```bash
+ls -la
+```
+You should see `Vagrantfile`, `k8s`, `backend`, `frontend`, etc.
+
+### 0.3 Create the Vagrantfile (if it doesn’t exist)
+
+**Where to run:** Same place — `/Users/mac/stehabiba/stehabibawebapp` (Mac, Terminal).
+
+**Option A: Vagrantfile already exists**
+
+If you have a `Vagrantfile` in the project (from the repo), you can skip to 0.4.
+
+**Option B: Create it from scratch**
+
+```bash
+cd /Users/mac/stehabiba/stehabibawebapp
+cp Vagrantfile.example Vagrantfile
+```
+
+**Option C: Create a minimal one with `vagrant init`**
+
+```bash
+cd /Users/mac/stehabiba/stehabibawebapp
+vagrant init ubuntu/jammy64
+```
+
+Then edit `Vagrantfile` and add port forwarding and synced folder (or replace its contents with `Vagrantfile.example`).
+
+### 0.4 Start Vagrant
+
+**Where to run:** On your Mac, in Terminal, in `/Users/mac/stehabiba/stehabibawebapp`.
+
+```bash
+cd /Users/mac/stehabiba/stehabibawebapp
+vagrant up
+```
+
+**What this does:** Downloads the VM image (first time only), creates the VM, and runs provisioning. It can take several minutes the first time.
+
+**When it’s done:** You should see a message like “Vagrant VM is ready” or the prompt back.
+
+### 0.5 Check Vagrant status
+
+**Where to run:** On your Mac, in Terminal, in `/Users/mac/stehabiba/stehabibawebapp`.
+
+```bash
+cd /Users/mac/stehabiba/stehabibawebapp
+vagrant status
+```
+
+**Expected:** `running` for the default VM. If you see “A Vagrant environment or target machine is required”, you are **not** in the folder that contains `Vagrantfile`. Run:
+
+```bash
+cd /Users/mac/stehabiba/stehabibawebapp
+```
+
+and try again.
+
+### 0.6 SSH into the VM
+
+**Where to run:** On your Mac, in Terminal, in `/Users/mac/stehabiba/stehabibawebapp`.
+
+```bash
+cd /Users/mac/stehabiba/stehabibawebapp
+vagrant ssh
+```
+
+**What this does:** Logs you into the Linux VM. Your prompt will change (e.g. `vagrant@ubuntu-jammy:~$`).
+
+- **Inside the VM:** project files are at `/vagrant` (same as `/Users/mac/stehabiba/stehabibawebapp` on your Mac).
+- **To exit:** type `exit` or press `Ctrl+D`.
+
+---
+
+## Path cheat sheet (Mac)
+
+| Where | Path |
+|-------|------|
+| **Project on your Mac** | `/Users/mac/stehabiba/stehabibawebapp` |
+| **Project inside the VM** | `/vagrant` |
+| **Vagrantfile location** | `/Users/mac/stehabiba/stehabibawebapp/Vagrantfile` |
+
+- **`vagrant` commands** → run on your **Mac**, in Terminal, with `cd /Users/mac/stehabiba/stehabibawebapp` first.
+- **`kubectl`, `minikube`, builds** → run **inside the VM** (after `vagrant ssh`), usually with `cd /vagrant`.
+
+---
+
 ## Prerequisites
 
 Before you start, you need:
 
-### 1. Vagrant Setup
+### 1. Vagrant and VirtualBox (Mac)
 
-**Since you're using Vagrant, make sure:**
+1. **Vagrant:**  
+   **Where to run:** On your Mac, in Terminal (any directory).
 
-1. **Vagrant is installed:**
    ```bash
    vagrant --version
    ```
-   If not installed: https://www.vagrantup.com/downloads
+   You should see something like `Vagrant 2.4.9`. If not: https://www.vagrantup.com/downloads
 
-2. **VirtualBox or another provider is installed:**
-   - VirtualBox: https://www.virtualbox.org/
-   - Or VMware, Parallels, etc.
+2. **VirtualBox:**  
+   Install from https://www.virtualbox.org/ (required for the default Vagrant provider on Mac).
 
-3. **Your Vagrant VM is running:**
+3. **Vagrantfile and VM:**  
+   Follow [Step 0](#step-0-create-vagrantfile-and-start-vagrant-do-this-first) so that:
+
    ```bash
-   # Check status
+   cd /Users/mac/stehabiba/stehabibawebapp
    vagrant status
-   
-   # If not running, start it
-   vagrant up
-   
-   # SSH into the VM
-   vagrant ssh
    ```
+   shows `running` (and `vagrant ssh` works).
 
 ### 2. A Terminal/Command Line
 
@@ -266,13 +370,11 @@ ls -la
 
 ### Step 4: Create the Kubernetes Namespace
 
-A namespace is like a folder in Kubernetes - it organizes your resources.
+**Where to run:** **Inside the Vagrant VM**, in the project directory.
 
 ```bash
-# Apply the namespace configuration
+cd /vagrant
 kubectl apply -f k8s/namespace.yaml
-
-# Verify it was created
 kubectl get namespace bibaluxe
 ```
 
@@ -282,143 +384,127 @@ NAME       STATUS   AGE
 bibaluxe   Active   5s
 ```
 
-**If you get an error:** Make sure kubectl is installed and connected to a cluster (see Prerequisites).
+**If you get an error:** Ensure Minikube is running (`minikube start`) and kubectl is installed in the VM (Vagrant provisioning or Prerequisites).
 
 ### Step 5: Create Secrets
 
-Secrets store sensitive information like passwords and API keys.
+**Where to run:**  
+- **Edit secrets:** On your **Mac** (easier with a GUI editor) in `/Users/mac/stehabiba/stehabibawebapp`, or inside the VM at `/vagrant`.  
+- **Apply with kubectl:** **Inside the Vagrant VM**, in `/vagrant`.
 
-**First, create the secrets file from the example:**
+**Create and edit the secrets file:**
 
+On your **Mac**, in Terminal:
 ```bash
-# Copy the example secrets file
+cd /Users/mac/stehabiba/stehabibawebapp
 cp k8s/secrets.example.yaml k8s/secrets.yaml
-
-# Edit it with your actual values
-# On Mac/Linux:
+open -e k8s/secrets.yaml
+```
+Or inside the VM:
+```bash
+cd /vagrant
+cp k8s/secrets.example.yaml k8s/secrets.yaml
 nano k8s/secrets.yaml
-# Or use any text editor
-
-# On Windows:
-notepad k8s/secrets.yaml
 ```
 
-**What to fill in:**
-- MongoDB connection string
-- JWT secret (generate a random string)
-- Grafana admin password
-- Any other secrets you need
+Fill in: MongoDB URI, JWT secret, Grafana admin password, etc.
 
-**Then apply the secrets:**
+**Apply secrets (inside the VM):**
 
 ```bash
-# Apply secrets (this creates them in Kubernetes)
+cd /vagrant
 kubectl apply -f k8s/secrets.yaml
-
-# Verify secrets were created
 kubectl get secrets -n bibaluxe
 ```
 
-**⚠️ Important:** Never commit `secrets.yaml` to Git! It should be in `.gitignore`.
+**⚠️ Important:** Do not commit `secrets.yaml`; keep it in `.gitignore`.
 
 ### Step 6: Create ConfigMaps
 
-ConfigMaps store non-sensitive configuration.
+**Where to run:** **Inside the Vagrant VM**, in `/vagrant`.
 
 ```bash
-# Apply ConfigMaps
+cd /vagrant
 kubectl apply -f k8s/configmaps.yaml
-
-# Verify
 kubectl get configmaps -n bibaluxe
 ```
 
 ### Step 7: Deploy MongoDB
 
+**Where to run:** **Inside the Vagrant VM**, in `/vagrant`.
+
 ```bash
-# Deploy MongoDB
+cd /vagrant
 kubectl apply -f k8s/mongodb-deployment.yaml
-
-# Check if MongoDB is running
 kubectl get pods -n bibaluxe
-
-# Wait until you see "Running" status (takes 1-2 minutes)
 kubectl get pods -n bibaluxe -w
-# Press Ctrl+C to stop watching
 ```
+Press `Ctrl+C` to stop watching. Wait until the MongoDB pod is `Running`.
 
-**Expected output:**
-```
-NAME                      READY   STATUS    RESTARTS   AGE
-mongodb-xxxxxxxxx-xxxxx    1/1     Running   0          2m
-```
+**Expected:** `mongodb-xxxxxxxxx-xxxxx    1/1     Running   0          2m`
 
 ### Step 8: Deploy Backend
 
-```bash
-# Deploy backend
-kubectl apply -f k8s/backend-deployment.yaml
+**Where to run:** **Inside the Vagrant VM**, in `/vagrant`.
 
-# Check backend status
+```bash
+cd /vagrant
+kubectl apply -f k8s/backend-deployment.yaml
 kubectl get pods -n bibaluxe | grep backend
 ```
 
 ### Step 9: Deploy Frontend
 
-```bash
-# Deploy frontend
-kubectl apply -f k8s/frontend-deployment.yaml
+**Where to run:** **Inside the Vagrant VM**, in `/vagrant`.
 
-# Check frontend status
+```bash
+cd /vagrant
+kubectl apply -f k8s/frontend-deployment.yaml
 kubectl get pods -n bibaluxe | grep frontend
 ```
 
 ### Step 10: Deploy Monitoring (Prometheus & Grafana)
 
-```bash
-# Deploy Prometheus and Grafana
-kubectl apply -f k8s/monitoring.yaml
+**Where to run:** **Inside the Vagrant VM**, in `/vagrant`.
 
-# Check monitoring pods
+```bash
+cd /vagrant
+kubectl apply -f k8s/monitoring.yaml
 kubectl get pods -n bibaluxe | grep -E "prometheus|grafana"
 ```
 
 ### Step 11: Deploy Ingress (For External Access)
 
-```bash
-# Deploy ingress
-kubectl apply -f k8s/ingress.yaml
+**Where to run:** **Inside the Vagrant VM**, in `/vagrant`.
 
-# Check ingress
+```bash
+cd /vagrant
+kubectl apply -f k8s/ingress.yaml
 kubectl get ingress -n bibaluxe
 ```
 
 ### Step 12: Deploy HPA (Auto-scaling)
 
-```bash
-# Deploy Horizontal Pod Autoscaler
-kubectl apply -f k8s/hpa.yaml
+**Where to run:** **Inside the Vagrant VM**, in `/vagrant`.
 
-# Check HPA
+```bash
+cd /vagrant
+kubectl apply -f k8s/hpa.yaml
 kubectl get hpa -n bibaluxe
 ```
 
 ### Step 13: Verify Everything is Running
 
-**Inside your Vagrant VM:**
+**Where to run:** **Inside the Vagrant VM**, in `/vagrant`.
 
 ```bash
-# Check all pods
+cd /vagrant
 kubectl get pods -n bibaluxe
-
-# Check all services
 kubectl get services -n bibaluxe
-
-# Check all deployments
 kubectl get deployments -n bibaluxe
 ```
 
-**All pods should show "Running" status and "1/1" or "3/3" in the READY column.**
+**All pods should show "Running" and READY like "1/1" or "3/3".**
 
 ---
 
@@ -933,38 +1019,41 @@ docker system prune -a
 
 ---
 
-## Quick Reference: Where to Run Commands (Vagrant)
+## Quick Reference: Where to Run Commands (Mac + Vagrant)
 
-### Important: Two Types of Commands
+### Paths on your Mac
 
-**1. Commands to run INSIDE Vagrant VM:**
-- All `kubectl` commands
-- All `minikube` commands
-- Building Docker images
-- Running applications
+| What | Path |
+|------|------|
+| **Project folder (Mac)** | `/Users/mac/stehabiba/stehabibawebapp` |
+| **Project folder (inside VM)** | `/vagrant` |
+| **Vagrantfile** | `/Users/mac/stehabiba/stehabibawebapp/Vagrantfile` |
 
-**How to run:**
+### 1. Commands on your Mac (HOST)
+
+**Where:** Mac, Terminal. **First run:** `cd /Users/mac/stehabiba/stehabibawebapp`
+
+- `vagrant up`, `vagrant status`, `vagrant ssh`, `vagrant reload`, `vagrant halt`
+- Opening `http://localhost:9090` etc. in the browser
+- `git` (if you work in the project on your Mac)
+
 ```bash
-# On your HOST machine, SSH into Vagrant
-vagrant ssh
-
-# Now you're inside the VM - run commands here
-cd /vagrant  # or wherever your project is
-kubectl get pods -n bibaluxe
-```
-
-**2. Commands to run on HOST machine:**
-- `vagrant` commands (up, ssh, status, etc.)
-- Accessing web UIs in browser
-- Git operations (if project is on host)
-- Port forwarding to access services
-
-**How to run:**
-```bash
-# On your HOST machine terminal
+cd /Users/mac/stehabiba/stehabibawebapp
 vagrant status
 vagrant ssh
-vagrant reload
+```
+
+### 2. Commands inside the Vagrant VM
+
+**Where:** Inside the VM (after `vagrant ssh`). **First run:** `cd /vagrant`
+
+- `kubectl`, `minikube`
+- Docker builds, running apps
+
+```bash
+cd /vagrant
+kubectl get pods -n bibaluxe
+minikube start
 ```
 
 ### Port Forwarding Summary (Vagrant)
