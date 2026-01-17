@@ -53,7 +53,7 @@ export class OrdersService {
     if (!order) {
       throw new NotFoundException(`Order with ID ${id} not found`);
     }
-    return order;
+    return order.toObject();
   }
 
   async findByOrderNumber(orderNumber: string): Promise<Order> {
@@ -61,7 +61,7 @@ export class OrdersService {
     if (!order) {
       throw new NotFoundException(`Order with order number ${orderNumber} not found`);
     }
-    return order;
+    return order.toObject();
   }
 
   async findAll(): Promise<Order[]> {
@@ -69,19 +69,29 @@ export class OrdersService {
   }
 
   async updateStatus(id: string, status: OrderStatus, trackingInfo?: TrackingInfo): Promise<Order> {
-    const order = await this.findOne(id);
+    const order: OrderDocument | null = await this.orderModel.findById(id).exec();
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${id} not found`);
+    }
+    
+    order.status = status;
     
     if (trackingInfo) {
       order.trackingHistory.push(trackingInfo);
     }
     
-    order.status = status;
-    return order.save();
+    const savedOrder = await order.save();
+    return savedOrder.toObject();
   }
 
   async updatePaymentStatus(id: string, paymentStatus: PaymentStatus): Promise<Order> {
-    const order = await this.findOne(id);
+    const order: OrderDocument | null = await this.orderModel.findById(id).exec();
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${id} not found`);
+    }
+    
     order.paymentStatus = paymentStatus;
-    return order.save();
+    const savedOrder = await order.save();
+    return savedOrder.toObject();
   }
 }

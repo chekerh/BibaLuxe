@@ -1,10 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // Security: Trust proxy for Render deployment (rate limiting behind reverse proxy)
+  // Access the underlying Express instance to set trust proxy
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('trust proxy', true);
   
   // Security: Helmet for HTTP headers
   app.use(helmet({
@@ -22,13 +28,16 @@ async function bootstrap() {
   // Security: CORS configuration
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
   const allowedOrigins = frontendUrl.split(',').map(url => url.trim());
+  const isDevelopment = process.env.NODE_ENV !== 'production';
   
   app.enableCors({
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, Postman, etc.)
       if (!origin) return callback(null, true);
       
-      if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+      // In production, only allow specified origins
+      // In development, allow all origins for easier testing
+      if (allowedOrigins.includes(origin) || (isDevelopment && process.env.NODE_ENV === 'development')) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
@@ -40,6 +49,9 @@ async function bootstrap() {
     exposedHeaders: ['Content-Length', 'X-Request-Id'],
     maxAge: 86400, // 24 hours
   });
+
+  // Global exception filter for consistent error responses
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   // Security: Global validation pipe
   app.useGlobalPipes(
@@ -53,16 +65,13 @@ async function bootstrap() {
       disableErrorMessages: process.env.NODE_ENV === 'production', // Hide error details in production
     }),
   );
-
-  // Security: Trust proxy (for rate limiting behind reverse proxy)
-  // Note: NestJS handles this automatically, but we can configure it if needed
-  // The trust proxy setting is handled by the underlying Express instance
   
   const port = process.env.PORT || 3001;
   await app.listen(port);
   console.log(`Backend server running on port ${port}`);
   console.log(`CORS enabled for: ${allowedOrigins.join(', ')}`);
-  console.log(`Security: Helmet, Validation, CORS configured`);
+  console.log(`Security: Helmet, Validation, CORS, Exception Filter configured`);
+  console.log(`Trust proxy: enabled`);
 }
 bootstrap();
 
