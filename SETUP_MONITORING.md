@@ -21,7 +21,33 @@ This is a **beginner-friendly, step-by-step guide** to set up all monitoring and
 
 Before you start, you need:
 
-### 1. A Terminal/Command Line
+### 1. Vagrant Setup
+
+**Since you're using Vagrant, make sure:**
+
+1. **Vagrant is installed:**
+   ```bash
+   vagrant --version
+   ```
+   If not installed: https://www.vagrantup.com/downloads
+
+2. **VirtualBox or another provider is installed:**
+   - VirtualBox: https://www.virtualbox.org/
+   - Or VMware, Parallels, etc.
+
+3. **Your Vagrant VM is running:**
+   ```bash
+   # Check status
+   vagrant status
+   
+   # If not running, start it
+   vagrant up
+   
+   # SSH into the VM
+   vagrant ssh
+   ```
+
+### 2. A Terminal/Command Line
 
 **On Mac/Linux:**
 - Open "Terminal" application
@@ -31,9 +57,18 @@ Before you start, you need:
 - Open "PowerShell" or "Command Prompt"
 - Or use "Git Bash" (if you have Git installed)
 
-### 2. Git Installed
+**Important for Vagrant:**
+- Most commands will be run **inside the Vagrant VM** (after `vagrant ssh`)
+- Some commands (like accessing web UIs) will be run on your **host machine**
 
-Check if Git is installed:
+### 3. Git Installed
+
+**On your host machine:**
+```bash
+git --version
+```
+
+**Inside Vagrant VM (after `vagrant ssh`):**
 ```bash
 git --version
 ```
@@ -41,25 +76,67 @@ git --version
 If you see a version number (like `git version 2.39.0`), you're good!
 If not, install Git: https://git-scm.com/downloads
 
-### 3. kubectl (for Kubernetes) - Optional
+### 4. kubectl (for Kubernetes) - Inside Vagrant VM
 
-Only needed if you want to deploy to Kubernetes.
+**Install kubectl inside your Vagrant VM:**
 
-**Install kubectl:**
-- Mac: `brew install kubectl`
-- Or download from: https://kubernetes.io/docs/tasks/tools/
+1. **SSH into Vagrant:**
+   ```bash
+   vagrant ssh
+   ```
 
-**Check if installed:**
+2. **Install kubectl:**
+   ```bash
+   # Download kubectl
+   curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+   
+   # Make it executable
+   chmod +x kubectl
+   
+   # Move to PATH
+   sudo mv kubectl /usr/local/bin/
+   
+   # Verify
+   kubectl version --client
+   ```
+
+### 5. A Kubernetes Cluster (Inside Vagrant VM)
+
+**Recommended: Minikube inside Vagrant**
+
+1. **SSH into Vagrant:**
+   ```bash
+   vagrant ssh
+   ```
+
+2. **Install Minikube:**
+   ```bash
+   # Download Minikube
+   curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+   
+   # Install
+   sudo install minikube-linux-amd64 /usr/local/bin/minikube
+   
+   # Start Minikube
+   minikube start
+   
+   # Verify
+   kubectl get nodes
+   ```
+
+**Alternative: Kind (Kubernetes in Docker)**
 ```bash
-kubectl version --client
+# Install Kind
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+chmod +x ./kind
+sudo mv ./kind /usr/local/bin/kind
+
+# Create cluster
+kind create cluster
+
+# Verify
+kubectl get nodes
 ```
-
-### 4. A Kubernetes Cluster (Optional)
-
-You need a Kubernetes cluster to deploy the monitoring tools. Options:
-- **Local**: Minikube, Docker Desktop, or Kind
-- **Cloud**: AWS EKS, Google GKE, Azure AKS
-- **Free**: Oracle Cloud (always free tier)
 
 ---
 
@@ -92,32 +169,77 @@ You need a Kubernetes cluster to deploy the monitoring tools. Options:
 
 ---
 
-## Kubernetes Setup
+## Kubernetes Setup (Vagrant)
 
-### Step 1: Choose Your Kubernetes Environment
+### Step 1: Start Your Vagrant VM
+
+**On your HOST machine:**
+```bash
+# Navigate to your project directory (where Vagrantfile is)
+cd /Users/mac/stehabiba/stehabibawebapp
+
+# Check if VM is running
+vagrant status
+
+# If not running, start it
+vagrant up
+
+# SSH into the VM
+vagrant ssh
+```
+
+**What this does:** 
+- `vagrant up` starts your virtual machine
+- `vagrant ssh` connects you to the VM (like SSH into a remote server)
+- From now on, most commands will be run **inside the Vagrant VM**
+
+### Step 2: Choose Your Kubernetes Environment (Inside Vagrant)
 
 **Option A: Local Development (Easiest for Testing)**
 
-**Using Docker Desktop (Mac/Windows):**
-1. Install Docker Desktop: https://www.docker.com/products/docker-desktop
-2. Open Docker Desktop
-3. Go to Settings → Kubernetes
-4. Check "Enable Kubernetes"
-5. Click "Apply & Restart"
-6. Wait for Kubernetes to start (green icon in status bar)
+**Using Minikube (Recommended for Vagrant):**
 
-**Using Minikube (Mac/Linux/Windows):**
+**Inside your Vagrant VM (after `vagrant ssh`):**
 ```bash
-# Install Minikube
-# Mac:
-brew install minikube
-
-# Linux/Windows: Follow instructions at https://minikube.sigs.k8s.io/docs/start/
-
-# Start Minikube
+# Start Minikube (first time takes 2-3 minutes)
 minikube start
 
 # Verify it's running
+kubectl get nodes
+
+# You should see output like:
+# NAME           STATUS   ROLES           AGE   VERSION
+# minikube       Ready    control-plane   1m    v1.28.0
+```
+
+**If Minikube isn't installed, install it:**
+```bash
+# Download Minikube
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+
+# Install
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+# Verify
+minikube version
+
+# Start Minikube
+minikube start
+```
+
+**Using Kind (Alternative - Kubernetes in Docker):**
+
+**Inside your Vagrant VM:**
+```bash
+# Install Kind
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+chmod +x ./kind
+sudo mv ./kind /usr/local/bin/kind
+
+# Create cluster
+kind create cluster --name bibaluxe
+
+# Verify
 kubectl get nodes
 ```
 
@@ -142,7 +264,7 @@ ls -la
 
 **What this does:** `cd` means "change directory". This takes you to your project folder where all the configuration files are.
 
-### Step 3: Create the Kubernetes Namespace
+### Step 4: Create the Kubernetes Namespace
 
 A namespace is like a folder in Kubernetes - it organizes your resources.
 
@@ -162,7 +284,7 @@ bibaluxe   Active   5s
 
 **If you get an error:** Make sure kubectl is installed and connected to a cluster (see Prerequisites).
 
-### Step 4: Create Secrets
+### Step 5: Create Secrets
 
 Secrets store sensitive information like passwords and API keys.
 
@@ -199,7 +321,7 @@ kubectl get secrets -n bibaluxe
 
 **⚠️ Important:** Never commit `secrets.yaml` to Git! It should be in `.gitignore`.
 
-### Step 5: Create ConfigMaps
+### Step 6: Create ConfigMaps
 
 ConfigMaps store non-sensitive configuration.
 
@@ -211,7 +333,7 @@ kubectl apply -f k8s/configmaps.yaml
 kubectl get configmaps -n bibaluxe
 ```
 
-### Step 6: Deploy MongoDB
+### Step 7: Deploy MongoDB
 
 ```bash
 # Deploy MongoDB
@@ -231,7 +353,7 @@ NAME                      READY   STATUS    RESTARTS   AGE
 mongodb-xxxxxxxxx-xxxxx    1/1     Running   0          2m
 ```
 
-### Step 7: Deploy Backend
+### Step 8: Deploy Backend
 
 ```bash
 # Deploy backend
@@ -241,7 +363,7 @@ kubectl apply -f k8s/backend-deployment.yaml
 kubectl get pods -n bibaluxe | grep backend
 ```
 
-### Step 8: Deploy Frontend
+### Step 9: Deploy Frontend
 
 ```bash
 # Deploy frontend
@@ -251,7 +373,7 @@ kubectl apply -f k8s/frontend-deployment.yaml
 kubectl get pods -n bibaluxe | grep frontend
 ```
 
-### Step 9: Deploy Monitoring (Prometheus & Grafana)
+### Step 10: Deploy Monitoring (Prometheus & Grafana)
 
 ```bash
 # Deploy Prometheus and Grafana
@@ -261,7 +383,7 @@ kubectl apply -f k8s/monitoring.yaml
 kubectl get pods -n bibaluxe | grep -E "prometheus|grafana"
 ```
 
-### Step 10: Deploy Ingress (For External Access)
+### Step 11: Deploy Ingress (For External Access)
 
 ```bash
 # Deploy ingress
@@ -271,7 +393,7 @@ kubectl apply -f k8s/ingress.yaml
 kubectl get ingress -n bibaluxe
 ```
 
-### Step 11: Deploy HPA (Auto-scaling)
+### Step 12: Deploy HPA (Auto-scaling)
 
 ```bash
 # Deploy Horizontal Pod Autoscaler
@@ -281,7 +403,9 @@ kubectl apply -f k8s/hpa.yaml
 kubectl get hpa -n bibaluxe
 ```
 
-### Step 12: Verify Everything is Running
+### Step 13: Verify Everything is Running
+
+**Inside your Vagrant VM:**
 
 ```bash
 # Check all pods
@@ -304,23 +428,55 @@ kubectl get deployments -n bibaluxe
 
 Prometheus is **already configured** in the Kubernetes manifests. Once you deploy `k8s/monitoring.yaml`, Prometheus will be running.
 
-### Accessing Prometheus
+### Accessing Prometheus (With Vagrant)
 
-**Option 1: Port Forward (Easiest for Local Testing)**
+**Step 1: Port Forward from Kubernetes to Vagrant VM**
 
+**Inside your Vagrant VM (after `vagrant ssh`):**
 ```bash
-# Forward Prometheus port to your local machine
+# Forward Prometheus port inside the VM
 kubectl port-forward -n bibaluxe service/prometheus-service 9090:9090
 ```
 
-**What this does:** Makes Prometheus accessible at `http://localhost:9090` on your computer.
+**What this does:** Makes Prometheus accessible at `http://localhost:9090` inside the Vagrant VM.
 
-**Then:**
-1. Open your web browser
+**Step 2: Port Forward from Vagrant VM to Your Host Machine**
+
+**In a NEW terminal on your HOST machine (not inside Vagrant):**
+```bash
+# Forward port from Vagrant VM to your host
+vagrant ssh -- -L 9090:localhost:9090 -N
+```
+
+**What this does:** 
+- `-L 9090:localhost:9090` forwards port 9090 from the VM to your host
+- `-N` means "don't execute a remote command" (just forward ports)
+- This makes Prometheus accessible on your host machine
+
+**Step 3: Access Prometheus**
+
+1. **On your HOST machine**, open your web browser
 2. Go to: `http://localhost:9090`
 3. You should see the Prometheus web interface
 
-**To stop port forwarding:** Press `Ctrl+C` in the terminal
+**To stop port forwarding:** 
+- Press `Ctrl+C` in both terminals
+
+**Alternative: Configure Vagrantfile for Automatic Port Forwarding**
+
+Add this to your `Vagrantfile`:
+```ruby
+config.vm.network "forwarded_port", guest: 9090, host: 9090  # Prometheus
+config.vm.network "forwarded_port", guest: 3000, host: 3000  # Grafana
+config.vm.network "forwarded_port", guest: 9000, host: 9000  # SonarQube
+```
+
+Then restart Vagrant:
+```bash
+vagrant reload
+```
+
+Now you can access services directly at `http://localhost:9090` without manual port forwarding!
 
 **Option 2: Access via Ingress (For Production)**
 
@@ -367,20 +523,31 @@ Prometheus configuration is in:
 
 Grafana is **already configured** in the Kubernetes manifests. Once you deploy `k8s/monitoring.yaml`, Grafana will be running.
 
-### Accessing Grafana
+### Accessing Grafana (With Vagrant)
 
-**Step 1: Port Forward**
+**Step 1: Port Forward from Kubernetes to Vagrant VM**
 
+**Inside your Vagrant VM (after `vagrant ssh`):**
 ```bash
-# Forward Grafana port to your local machine
+# Forward Grafana port inside the VM
 kubectl port-forward -n bibaluxe service/grafana-service 3000:3000
 ```
 
-**Step 2: Open in Browser**
+**Step 2: Port Forward from Vagrant VM to Your Host Machine**
 
-1. Open your web browser
+**In a NEW terminal on your HOST machine:**
+```bash
+# Forward port from Vagrant VM to your host
+vagrant ssh -- -L 3000:localhost:3000 -N
+```
+
+**Step 3: Open in Browser**
+
+1. **On your HOST machine**, open your web browser
 2. Go to: `http://localhost:3000`
 3. You'll see the Grafana login page
+
+**Or use Vagrantfile port forwarding (see Prometheus section above)**
 
 **Step 3: Login**
 
@@ -766,16 +933,85 @@ docker system prune -a
 
 ---
 
-## Quick Reference: Where to Run Commands
+## Quick Reference: Where to Run Commands (Vagrant)
 
-### All commands should be run in your terminal:
+### Important: Two Types of Commands
 
-1. **Open Terminal** (Mac) or PowerShell/Command Prompt (Windows)
-2. **Navigate to project:**
+**1. Commands to run INSIDE Vagrant VM:**
+- All `kubectl` commands
+- All `minikube` commands
+- Building Docker images
+- Running applications
+
+**How to run:**
+```bash
+# On your HOST machine, SSH into Vagrant
+vagrant ssh
+
+# Now you're inside the VM - run commands here
+cd /vagrant  # or wherever your project is
+kubectl get pods -n bibaluxe
+```
+
+**2. Commands to run on HOST machine:**
+- `vagrant` commands (up, ssh, status, etc.)
+- Accessing web UIs in browser
+- Git operations (if project is on host)
+- Port forwarding to access services
+
+**How to run:**
+```bash
+# On your HOST machine terminal
+vagrant status
+vagrant ssh
+vagrant reload
+```
+
+### Port Forwarding Summary (Vagrant)
+
+To access services running in Kubernetes inside Vagrant:
+
+**Method 1: Manual Port Forwarding (Two Steps)**
+
+1. **Inside Vagrant VM:**
    ```bash
-   cd /Users/mac/stehabiba/stehabibawebapp
+   kubectl port-forward -n bibaluxe service/prometheus-service 9090:9090
    ```
-3. **Run the commands** from the guide above
+
+2. **On HOST machine (new terminal):**
+   ```bash
+   vagrant ssh -- -L 9090:localhost:9090 -N
+   ```
+
+3. **Access on HOST:** `http://localhost:9090`
+
+**Method 2: Vagrantfile Port Forwarding (Recommended)**
+
+Add to your `Vagrantfile`:
+```ruby
+# Prometheus
+config.vm.network "forwarded_port", guest: 9090, host: 9090
+
+# Grafana
+config.vm.network "forwarded_port", guest: 3000, host: 3000
+
+# SonarQube
+config.vm.network "forwarded_port", guest: 9000, host: 9000
+
+# Backend API
+config.vm.network "forwarded_port", guest: 3001, host: 3001
+
+# Frontend
+config.vm.network "forwarded_port", guest: 3000, host: 3000
+```
+
+Then:
+```bash
+# Reload Vagrant to apply changes
+vagrant reload
+```
+
+Now you can access services directly without manual port forwarding!
 
 ### Command Structure Explained:
 

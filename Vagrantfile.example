@@ -1,0 +1,84 @@
+# Example Vagrantfile for BibaLuxe Project
+# Copy this to Vagrantfile and customize as needed
+
+Vagrant.configure("2") do |config|
+  # Use Ubuntu 22.04 LTS
+  config.vm.box = "ubuntu/jammy64"
+  
+  # VM Configuration
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "bibaluxe-dev"
+    vb.memory = "4096"  # 4GB RAM (adjust based on your needs)
+    vb.cpus = 2
+  end
+  
+  # Network Configuration - Port Forwarding
+  # These ports forward services from VM to your host machine
+  config.vm.network "forwarded_port", guest: 9090, host: 9090, auto_correct: true  # Prometheus
+  config.vm.network "forwarded_port", guest: 3000, host: 3000, auto_correct: true  # Grafana
+  config.vm.network "forwarded_port", guest: 9000, host: 9000, auto_correct: true  # SonarQube
+  config.vm.network "forwarded_port", guest: 3001, host: 3001, auto_correct: true  # Backend API
+  config.vm.network "forwarded_port", guest: 8080, host: 8080, auto_correct: true  # Jenkins (if used)
+  
+  # Sync project folder
+  # Option 1: Sync current directory to /vagrant (default)
+  # config.vm.synced_folder ".", "/vagrant"
+  
+  # Option 2: Sync specific directory
+  config.vm.synced_folder "/Users/mac/stehabiba/stehabibawebapp", "/home/vagrant/stehabibawebapp"
+  
+  # Provisioning - Install required tools
+  config.vm.provision "shell", inline: <<-SHELL
+    # Update system
+    sudo apt-get update
+    sudo apt-get upgrade -y
+    
+    # Install basic tools
+    sudo apt-get install -y curl wget git vim
+    
+    # Install Docker (for Kubernetes)
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sudo sh get-docker.sh
+    sudo usermod -aG docker vagrant
+    
+    # Install kubectl
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    chmod +x kubectl
+    sudo mv kubectl /usr/local/bin/
+    
+    # Install Minikube
+    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    sudo install minikube-linux-amd64 /usr/local/bin/minikube
+    
+    # Install Node.js 20 (for building)
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    
+    # Install npm packages globally (optional)
+    # sudo npm install -g npm@latest
+    
+    echo "✅ Vagrant VM setup complete!"
+    echo "📝 Next steps:"
+    echo "   1. vagrant ssh"
+    echo "   2. minikube start"
+    echo "   3. cd /home/vagrant/stehabibawebapp"
+    echo "   4. Follow SETUP_MONITORING.md guide"
+  SHELL
+  
+  # Post-up message
+  config.vm.post_up_message = <<-MESSAGE
+  🎉 Vagrant VM is ready!
+  
+  To get started:
+  1. SSH into the VM: vagrant ssh
+  2. Start Minikube: minikube start
+  3. Navigate to project: cd /home/vagrant/stehabibawebapp
+  4. Follow the SETUP_MONITORING.md guide
+  
+  Services will be accessible at:
+  - Prometheus: http://localhost:9090
+  - Grafana: http://localhost:3000
+  - SonarQube: http://localhost:9000
+  - Backend API: http://localhost:3001
+  MESSAGE
+end
