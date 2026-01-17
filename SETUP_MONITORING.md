@@ -79,30 +79,63 @@ vagrant up
 
 **⚠️ Apple Silicon (M1/M2/M3) Mac Users:**
 
-If you get an error like "platform architecture x86 is not supported on ARM", you have two options:
+If you get an error like **"platform architecture x86 is not supported on ARM"**, VirtualBox doesn't work well on Apple Silicon. Here are your options:
 
-**Option A: Use Parallels (Recommended for ARM Macs)**
+**Option A: Use Parallels Desktop (Best for ARM Macs) - Recommended**
 
-1. Install Parallels Desktop: https://www.parallels.com/
-2. Install Vagrant Parallels plugin:
+**Where to run:** On your Mac, in Terminal.
+
+1. **Install Parallels Desktop:**
+   - Download: https://www.parallels.com/
+   - Install and activate (paid, but works perfectly on ARM Macs)
+
+2. **Install Vagrant Parallels plugin:**
    ```bash
+   cd /Users/mac/stehabiba/stehabibawebapp
    vagrant plugin install vagrant-parallels
    ```
-3. Update Vagrantfile to use Parallels (uncomment the Parallels section)
-4. Run `vagrant up`
 
-**Option B: Use UTM (Free Alternative)**
+3. **Use Parallels Vagrantfile:**
+   ```bash
+   cd /Users/mac/stehabiba/stehabibawebapp
+   cp Vagrantfile.parallels Vagrantfile
+   ```
+
+4. **Start Vagrant:**
+   ```bash
+   vagrant up
+   ```
+
+**Option B: Use Docker Desktop (Easiest - Skip Vagrant)**
+
+Since you need Kubernetes anyway, skip Vagrant and use Docker Desktop:
+
+**Where to run:** On your Mac, in Terminal.
+
+1. **Install Docker Desktop:**
+   - Download: https://www.docker.com/products/docker-desktop
+   - Install and open Docker Desktop
+
+2. **Enable Kubernetes:**
+   - Open Docker Desktop
+   - Go to Settings → Kubernetes
+   - Check "Enable Kubernetes"
+   - Click "Apply & Restart"
+   - Wait for Kubernetes to start (green icon)
+
+3. **Verify:**
+   ```bash
+   kubectl get nodes
+   ```
+   You should see a node running.
+
+4. **Skip to Kubernetes Setup section** - you can run all `kubectl` commands directly on your Mac!
+
+**Option C: Use UTM (Free Alternative)**
 
 1. Install UTM: https://mac.getutm.app/
-2. Create a new VM manually with Ubuntu 22.04 ARM
-3. Or use Vagrant with UTM provider (more complex setup)
-
-**Option C: Use Docker Desktop (Easiest for Kubernetes)**
-
-Since you're using Kubernetes anyway, you might want to skip Vagrant and use Docker Desktop's built-in Kubernetes:
-1. Install Docker Desktop: https://www.docker.com/products/docker-desktop
-2. Enable Kubernetes in Docker Desktop settings
-3. Skip Vagrant setup and go directly to Kubernetes Setup section
+2. Create Ubuntu 22.04 ARM VM manually
+3. More complex setup - not recommended unless you need it
 
 **When it's done:** You should see a message like "Vagrant VM is ready" or the prompt back.
 
