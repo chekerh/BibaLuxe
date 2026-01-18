@@ -116,12 +116,13 @@ Since you need Kubernetes anyway, skip Vagrant and use Docker Desktop:
    - Download: https://www.docker.com/products/docker-desktop
    - Install and open Docker Desktop
 
-2. **Enable Kubernetes:**
+2. **Create Kubernetes Cluster:**
    - Open Docker Desktop
-   - Go to Settings → Kubernetes
-   - Check "Enable Kubernetes"
-   - Click "Apply & Restart"
-   - Wait for Kubernetes to start (green icon)
+   - Go to Settings → Kubernetes (or click "Kubernetes" in left sidebar)
+   - Click the blue **"Create cluster"** button
+   - Wait for the cluster to be created (1-2 minutes)
+   - The Kubernetes icon in the menu bar should turn **green** when ready
+   - Note: In newer Docker Desktop versions, there's no "Enable Kubernetes" checkbox - just click "Create cluster"
 
 3. **Verify:**
    ```bash
