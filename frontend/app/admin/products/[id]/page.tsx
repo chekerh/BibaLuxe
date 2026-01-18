@@ -5,8 +5,9 @@ import { Form, Input, Button, message, Card, Typography, InputNumber, Switch, Up
 import { UploadOutlined, PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { useRouter, useParams } from 'next/navigation';
 import AdminLayout from '@/app/admin/layout';
-import { productsApi, Product, LocalizedString } from '@/lib/api';
+import { productsApi, Product, LocalizedString, uploadApi } from '@/lib/api';
 import { useI18n } from '@/contexts/I18nContext';
+import Image from 'next/image';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -18,6 +19,8 @@ export default function ProductFormPage() {
   const { id } = params as { id: string };
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { t, locale } = useI18n();
 
   const getLocalizedValue = (obj: LocalizedString | undefined, lang: string) => {
@@ -62,6 +65,10 @@ export default function ProductFormPage() {
             })),
           };
           form.setFieldsValue(initialValues);
+          // Set image preview if product has an image
+          if (product.image) {
+            setImagePreview(product.image);
+          }
         } catch (error) {
           message.error(t('admin.products.fetchDetailsError'));
           console.error('Failed to fetch product details:', error);
@@ -127,21 +134,43 @@ export default function ProductFormPage() {
     }
   };
 
+  // Custom upload handler for Cloudinary
+  const handleImageUpload = async (options: any) => {
+    const { file, onSuccess, onError } = options;
+    
+    setUploading(true);
+    try {
+      const result = await uploadApi.uploadImage(file);
+      form.setFieldsValue({ image: result.url });
+      setImagePreview(result.url);
+      message.success(`${file.name} uploaded successfully`);
+      onSuccess(result, file);
+    } catch (error: any) {
+      console.error('Upload failed:', error);
+      message.error(error.response?.data?.message || 'Image upload failed. Please try again.');
+      onError(error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const uploadProps = {
     name: 'file',
-    action: '/api/upload', // Replace with your actual upload API endpoint
-    headers: { authorization: 'authorization-text' },
-    onChange(info: any) {
-      if (info.file.status !== 'uploading') {
-        console.log(info.file, info.fileList);
+    customRequest: handleImageUpload,
+    accept: 'image/jpeg,image/png,image/gif,image/webp',
+    showUploadList: false,
+    beforeUpload: (file: File) => {
+      const isValidType = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type);
+      if (!isValidType) {
+        message.error('You can only upload JPG, PNG, GIF, or WebP files!');
+        return false;
       }
-      if (info.file.status === 'done') {
-        message.success(`${info.file.name} file uploaded successfully`);
-        // Update form field with uploaded image URL
-        form.setFieldsValue({ image: info.file.response.url });
-      } else if (info.file.status === 'error') {
-        message.error(`${info.file.name} file upload failed.`);
+      const isLt10M = file.size / 1024 / 1024 < 10;
+      if (!isLt10M) {
+        message.error('Image must be smaller than 10MB!');
+        return false;
       }
+      return true;
     },
   };
 
@@ -194,13 +223,51 @@ export default function ProductFormPage() {
       label: 'Media',
       children: (
         <div className="space-y-6">
-          <Form.Item name="image" label={t('admin.products.form.image')}>
-            <Input placeholder={t('admin.products.form.imagePlaceholder')} />
-          </Form.Item>
-          <Form.Item label={t('admin.products.form.uploadImage')}>
-            <Upload {...uploadProps}>
-              <Button icon={<UploadOutlined />}>{t('admin.products.form.clickToUpload')}</Button>
-            </Upload>
+          <Form.Item label={t('admin.products.form.image')} required>
+            <div className="flex flex-col gap-4">
+              {/* Image Preview */}
+              {imagePreview && (
+                <div className="relative w-48 h-48 border rounded-lg overflow-hidden">
+                  <Image
+                    src={imagePreview}
+                    alt="Product preview"
+                    fill
+                    className="object-cover"
+                    sizes="192px"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImagePreview(null);
+                      form.setFieldsValue({ image: '' });
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+              
+              {/* Upload Button */}
+              <Upload {...uploadProps}>
+                <Button 
+                  icon={<UploadOutlined />} 
+                  loading={uploading}
+                  disabled={uploading}
+                >
+                  {uploading ? 'Uploading...' : (imagePreview ? 'Change Image' : t('admin.products.form.clickToUpload'))}
+                </Button>
+              </Upload>
+              
+              {/* Hidden field to store the image URL */}
+              <Form.Item name="image" noStyle>
+                <Input type="hidden" />
+              </Form.Item>
+              
+              <p className="text-gray-500 text-sm">
+                Supported formats: JPG, PNG, GIF, WebP. Max size: 10MB.
+              </p>
+            </div>
           </Form.Item>
 
           <Form.Item name="model3d" label={t('admin.products.form.model3d')}>

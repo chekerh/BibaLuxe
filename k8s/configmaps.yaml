@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: bibaluxe
+data:
+  frontend-url: "https://your-frontend-domain.com"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: bibaluxe
+data:
+  api-url: "http://backend-service.bibaluxe.svc.cluster.local"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: bibaluxe
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    scrape_configs:
+      - job_name: 'backend'
+        static_configs:
+          - targets: ['backend-service:80']
+      - job_name: 'frontend'
+        static_configs:
+          - targets: ['frontend-service:80']

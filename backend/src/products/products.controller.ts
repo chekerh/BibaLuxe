@@ -10,12 +10,16 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Throttle } from '@nestjs/throttler';
 import { ParseMongoIdPipe } from '../common/pipes/parse-mongo-id.pipe';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('products')
 export class ProductsController {
@@ -23,6 +27,8 @@ export class ProductsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute for POST
   create(@Body() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
@@ -60,6 +66,8 @@ export class ProductsController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 requests per minute for PATCH
   update(
     @Param('id', ParseMongoIdPipe) id: string,
@@ -70,6 +78,8 @@ export class ProductsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute for DELETE
   remove(@Param('id', ParseMongoIdPipe) id: string) {
     return this.productsService.remove(id);

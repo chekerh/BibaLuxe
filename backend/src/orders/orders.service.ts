@@ -64,8 +64,18 @@ export class OrdersService {
     return order.toObject();
   }
 
-  async findAll(): Promise<Order[]> {
-    return this.orderModel.find().exec();
+  async findAll(filters?: { status?: OrderStatus; paymentStatus?: PaymentStatus }): Promise<Order[]> {
+    const query: Record<string, any> = {};
+    
+    if (filters?.status) {
+      query.status = filters.status;
+    }
+    if (filters?.paymentStatus) {
+      query.paymentStatus = filters.paymentStatus;
+    }
+    
+    // Use lean() for read-only queries to reduce memory usage
+    return this.orderModel.find(query).sort({ createdAt: -1 }).lean().exec();
   }
 
   async updateStatus(id: string, status: OrderStatus, trackingInfo?: TrackingInfo): Promise<Order> {

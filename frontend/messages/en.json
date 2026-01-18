@@ -156,6 +156,7 @@
     "addProductsToCheckout": "Add some products to your cart to checkout",
     "shippingInformation": "Shipping Information",
     "paymentInformation": "Payment Information",
+    "paymentMethod": "Payment Method",
     "orderSummary": "Order Summary",
     "firstName": "First Name",
     "lastName": "Last Name",
@@ -172,10 +173,13 @@
     "expiryDate": "MM/YY",
     "cvv": "CVV",
     "nameOnCard": "Name on Card",
-    "placeOrder": "Place Order Securely",
-    "securePayment": "Your payment information is secure and encrypted",
+    "cashOnDelivery": "Cash on Delivery",
+    "codDescription": "Pay when your order arrives",
+    "codNote": "Please have the exact amount ready when our delivery team arrives. We accept cash only for COD orders.",
+    "placeOrder": "Place Order",
+    "securePayment": "Your order is secure. Pay cash when your order arrives.",
     "qty": "Qty",
-    "orderSuccess": "Order placed successfully!"
+    "orderSuccess": "Order placed successfully! You will pay upon delivery."
   },
   "orderTracking": {
     "title": "Track Your Order",

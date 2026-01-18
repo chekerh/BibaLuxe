@@ -22,15 +22,15 @@ function getCurrentLocale(): string {
   return 'en';
 }
 
-// Helper to get JWT token from localStorage
+// Helper to get JWT token from sessionStorage (more secure than localStorage - cleared on tab close)
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') {
     return null;
   }
   try {
-    return localStorage.getItem('admin-token');
+    return sessionStorage.getItem('admin-token');
   } catch (e) {
-    console.warn('Could not access localStorage:', e);
+    console.warn('Could not access sessionStorage:', e);
     return null;
   }
 }
@@ -38,8 +38,8 @@ function getAuthToken(): string | null {
 // Helper to clear auth token
 function clearAuthToken(): void {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('admin-token');
-    localStorage.removeItem('admin-user');
+    sessionStorage.removeItem('admin-token');
+    sessionStorage.removeItem('admin-user');
   }
 }
 
@@ -575,5 +575,30 @@ export const aiChatApi = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/ai-chat/${id}`);
+  },
+};
+
+// Upload API
+export interface UploadResponse {
+  success: boolean;
+  url: string;
+  publicId: string;
+}
+
+export const uploadApi = {
+  uploadImage: async (file: File): Promise<UploadResponse> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await api.post('/upload/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  deleteImage: async (publicId: string): Promise<void> => {
+    await api.delete(`/upload/image/${encodeURIComponent(publicId)}`);
   },
 };

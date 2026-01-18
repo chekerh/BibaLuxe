@@ -1,0 +1,15 @@
+{
+  "name": "load-tests",
+  "version": "1.0.0",
+  "description": "Load testing scripts for BibaLuxe",
+  "scripts": {
+    "smoke": "k6 run smoke-test.js",
+    "load": "k6 run load-test.js",
+    "stress": "k6 run stress-test.js",
+    "smoke:cloud": "k6 cloud smoke-test.js",
+    "load:cloud": "k6 cloud load-test.js"
+  },
+  "devDependencies": {
+    "k6": "^0.0.0"
+  }
+}

@@ -90,3 +90,11 @@ export class Order {
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
+
+// Database indexes for query optimization
+OrderSchema.index({ orderNumber: 1 }, { unique: true });
+OrderSchema.index({ status: 1 });
+OrderSchema.index({ paymentStatus: 1 });
+OrderSchema.index({ createdAt: -1 });
+OrderSchema.index({ status: 1, paymentStatus: 1 }); // Compound index for filtering
+OrderSchema.index({ 'shippingAddress.email': 1 }); // For customer order lookups

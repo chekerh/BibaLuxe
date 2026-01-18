@@ -11,6 +11,7 @@ import { OrdersModule } from './orders/orders.module';
 import { StatsModule } from './stats/stats.module';
 import { HealthModule } from './health/health.module';
 import { MetricsModule } from './metrics/metrics.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -21,9 +22,18 @@ import { MetricsModule } from './metrics/metrics.module';
     MongooseModule.forRoot(
       process.env.MONGODB_URI || 'mongodb://localhost:27017/mattress-store',
       {
-        // Security: Prevent injection attacks
+        // Security & Performance: MongoDB Atlas optimized settings
         retryWrites: true,
         w: 'majority',
+        // Connection pooling for production traffic
+        maxPoolSize: 50, // Maximum connections in pool
+        minPoolSize: 5, // Keep minimum connections warm
+        // Timeouts for reliability
+        serverSelectionTimeoutMS: 5000, // Fail fast if can't connect
+        socketTimeoutMS: 45000, // Socket timeout
+        connectTimeoutMS: 10000, // Initial connection timeout
+        // Retry settings
+        retryReads: true,
       }
     ),
     // Security: Rate limiting
@@ -41,6 +51,7 @@ import { MetricsModule } from './metrics/metrics.module';
     StatsModule,
     HealthModule,
     MetricsModule,
+    UploadModule,
   ],
   providers: [
     // Security: Apply rate limiting globally

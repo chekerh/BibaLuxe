@@ -28,3 +28,9 @@ export class User {
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
+// Database indexes for query optimization
+// Note: username and email already have unique: true which creates indexes
+UserSchema.index({ role: 1 });
+UserSchema.index({ isActive: 1 });
+UserSchema.index({ createdAt: -1 });
+

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
-import { CreditCard, Lock, Truck, MapPin, User, Mail, Phone } from 'lucide-react';
+import { Lock, Truck, MapPin, User, Mail, Phone, Banknote } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TrustBadges from '@/components/TrustBadges';
@@ -25,7 +25,6 @@ export default function CheckoutPage() {
     return name[locale as keyof typeof name] || name.en || '';
   };
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [step, setStep] = useState<'shipping' | 'payment' | 'review'>('shipping');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -36,11 +35,6 @@ export default function CheckoutPage() {
     state: '',
     zipCode: '',
     country: 'United States',
-    paymentMethod: 'card',
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    nameOnCard: '',
   });
 
   if (items.length === 0) {
@@ -99,7 +93,7 @@ export default function CheckoutPage() {
         shipping,
         tax,
         total,
-        paymentMethod: formData.paymentMethod,
+        paymentMethod: 'cod', // Cash on Delivery
       });
 
       showToast(t('checkout.orderSuccess'), 'success');
@@ -202,70 +196,26 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Payment Information */}
+            {/* Payment Method - Cash on Delivery */}
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
               <div className="flex items-center gap-3 mb-6">
-                <CreditCard className="w-6 h-6 text-green-600" />
-                <h2 className="text-2xl font-bold text-black">{t('checkout.paymentInformation')}</h2>
+                <Banknote className="w-6 h-6 text-green-600" />
+                <h2 className="text-2xl font-bold text-black">{t('checkout.paymentMethod')}</h2>
               </div>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => setFormData({ ...formData, paymentMethod: 'card' })}
-                    className={`flex-1 px-4 py-3 rounded-lg border-2 font-medium transition-all ${
-                      formData.paymentMethod === 'card'
-                        ? 'border-green-600 bg-green-50 text-green-700'
-                        : 'border-gray-300 text-gray-700'
-                    }`}
-                  >
-                    {t('checkout.creditCard')}
-                  </button>
-                  <button
-                    onClick={() => setFormData({ ...formData, paymentMethod: 'paypal' })}
-                    className={`flex-1 px-4 py-3 rounded-lg border-2 font-medium transition-all ${
-                      formData.paymentMethod === 'paypal'
-                        ? 'border-green-600 bg-green-50 text-green-700'
-                        : 'border-gray-300 text-gray-700'
-                    }`}
-                  >
-                    {t('checkout.paypal')}
-                  </button>
-                </div>
-                {formData.paymentMethod === 'card' && (
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      placeholder={t('checkout.cardNumber')}
-                      value={formData.cardNumber}
-                      onChange={(e) => setFormData({ ...formData, cardNumber: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 text-black"
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <input
-                        type="text"
-                        placeholder={t('checkout.expiryDate')}
-                        value={formData.expiryDate}
-                        onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                        className="px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 text-black"
-                      />
-                      <input
-                        type="text"
-                        placeholder={t('checkout.cvv')}
-                        value={formData.cvv}
-                        onChange={(e) => setFormData({ ...formData, cvv: e.target.value })}
-                        className="px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 text-black"
-                      />
-                    </div>
-                    <input
-                      type="text"
-                      placeholder={t('checkout.nameOnCard')}
-                      value={formData.nameOnCard}
-                      onChange={(e) => setFormData({ ...formData, nameOnCard: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 text-black"
-                    />
+              <div className="bg-green-50 border-2 border-green-600 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                    <Banknote className="w-5 h-5 text-white" />
                   </div>
-                )}
+                  <div>
+                    <p className="font-semibold text-green-700">{t('checkout.cashOnDelivery')}</p>
+                    <p className="text-sm text-green-600">{t('checkout.codDescription')}</p>
+                  </div>
+                </div>
               </div>
+              <p className="text-sm text-gray-500 mt-4">
+                {t('checkout.codNote')}
+              </p>
             </div>
           </div>
 

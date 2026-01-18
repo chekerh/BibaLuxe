@@ -9,6 +9,7 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UserDocument } from './schemas/user.schema';
@@ -16,8 +17,13 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Throttle } from '@nestjs/throttler';
 import { ParseMongoIdPipe } from '../common/pipes/parse-mongo-id.pipe';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard, RolesGuard) // All user endpoints require admin auth
+@Roles('admin')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

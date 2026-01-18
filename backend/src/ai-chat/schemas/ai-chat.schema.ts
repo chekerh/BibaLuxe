@@ -24,3 +24,9 @@ export class AiChat {
 
 export const AiChatSchema = SchemaFactory.createForClass(AiChat);
 
+// Database indexes for query optimization
+AiChatSchema.index({ isActive: 1 });
+AiChatSchema.index({ tags: 1 });
+AiChatSchema.index({ categories: 1 });
+AiChatSchema.index({ createdAt: -1 });
+

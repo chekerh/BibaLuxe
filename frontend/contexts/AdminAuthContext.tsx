@@ -20,8 +20,9 @@ export function AdminAuthWrapper({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const verifyToken = async () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('admin-token') : null;
-    const storedUser = typeof window !== 'undefined' ? localStorage.getItem('admin-user') : null;
+    // Use sessionStorage for better security (cleared on tab close, not accessible to other tabs)
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem('admin-token') : null;
+    const storedUser = typeof window !== 'undefined' ? sessionStorage.getItem('admin-user') : null;
 
     if (token && storedUser) {
       try {
@@ -38,8 +39,8 @@ export function AdminAuthWrapper({ children }: { children: ReactNode }) {
         } catch (error) {
           // Token is invalid or expired
           console.error("Token verification failed:", error);
-        typeof window !== 'undefined' && localStorage.removeItem('admin-token');
-        typeof window !== 'undefined' && localStorage.removeItem('admin-user');
+        typeof window !== 'undefined' && sessionStorage.removeItem('admin-token');
+        typeof window !== 'undefined' && sessionStorage.removeItem('admin-user');
         setIsLoggedIn(false);
         setUser(null);
       }
@@ -60,17 +61,18 @@ export function AdminAuthWrapper({ children }: { children: ReactNode }) {
 
   const login = (token: string, username: string, role: string) => {
     console.log("AdminAuthContext: login function called", { token, username, role });
-    typeof window !== 'undefined' && localStorage.setItem('admin-token', token);
+    // Use sessionStorage for better security (cleared on tab close)
+    typeof window !== 'undefined' && sessionStorage.setItem('admin-token', token);
     const userData = { username, role };
-    typeof window !== 'undefined' && localStorage.setItem('admin-user', JSON.stringify(userData));
+    typeof window !== 'undefined' && sessionStorage.setItem('admin-user', JSON.stringify(userData));
     setIsLoggedIn(true);
     setUser(userData);
     router.push('/admin');
   };
 
   const logout = () => {
-    typeof window !== 'undefined' && localStorage.removeItem('admin-token');
-    typeof window !== 'undefined' && localStorage.removeItem('admin-user');
+    typeof window !== 'undefined' && sessionStorage.removeItem('admin-token');
+    typeof window !== 'undefined' && sessionStorage.removeItem('admin-user');
     setIsLoggedIn(false);
     setUser(null);
     router.push('/admin/login');

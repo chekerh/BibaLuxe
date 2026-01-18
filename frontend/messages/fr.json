@@ -156,6 +156,7 @@
     "addProductsToCheckout": "Ajoutez des produits à votre panier pour commander",
     "shippingInformation": "Informations de livraison",
     "paymentInformation": "Informations de paiement",
+    "paymentMethod": "Mode de paiement",
     "orderSummary": "Résumé de la commande",
     "firstName": "Prénom",
     "lastName": "Nom",
@@ -172,10 +173,13 @@
     "expiryDate": "MM/AA",
     "cvv": "CVV",
     "nameOnCard": "Nom sur la carte",
-    "placeOrder": "Passer la commande en toute sécurité",
-    "securePayment": "Vos informations de paiement sont sécurisées et cryptées",
+    "cashOnDelivery": "Paiement à la livraison",
+    "codDescription": "Payez à la réception de votre commande",
+    "codNote": "Veuillez préparer le montant exact à l'arrivée de notre équipe de livraison. Nous acceptons uniquement les paiements en espèces pour les commandes en paiement à la livraison.",
+    "placeOrder": "Passer la commande",
+    "securePayment": "Votre commande est sécurisée. Payez en espèces à la réception.",
     "qty": "Qté",
-    "orderSuccess": "Commande passée avec succès !"
+    "orderSuccess": "Commande passée avec succès ! Vous paierez à la livraison."
   },
   "footer": {
     "tagline": "Matelas premium et mobilier artisanal conçus avec la science du sommeil.",

@@ -56,3 +56,9 @@ export class Product {
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
+
+// Database indexes for query optimization
+ProductSchema.index({ category: 1 });
+ProductSchema.index({ inStock: 1 });
+ProductSchema.index({ category: 1, inStock: 1 }); // Compound index for filtered queries
+ProductSchema.index({ createdAt: -1 });
