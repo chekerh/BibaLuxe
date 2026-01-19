@@ -29,12 +29,17 @@ interface AdminLayoutProps {
 }
 
 function AdminLayoutContent({ children }: AdminLayoutProps) {
-  const { user, logout } = useAdminAuth();
+  const { user, logout, isLoggedIn } = useAdminAuth();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  // If on login page, render just the children without the admin layout
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
 
   // Get breadcrumb items from pathname
   const getBreadcrumbItems = (): Array<{ title: React.ReactNode }> => {

@@ -86,22 +86,21 @@ export function AdminAuthWrapper({ children }: { children: ReactNode }) {
     );
   }
 
-  // If not logged in and not on the login page, redirect to login and return null
+  // If not logged in and not on the login page, show loading while redirect happens via useEffect
   if (!isLoggedIn && pathname !== '/admin/login') {
-    router.push('/admin/login');
-    return null;
-  }
-
-  // Render children only if logged in, or if on the login page
-  if (isLoggedIn || pathname === '/admin/login') {
     return (
-      <AdminAuthContext.Provider value={{ isLoggedIn, user, login, logout }}>
-        {children}
-      </AdminAuthContext.Provider>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Spin size="large" />
+      </div>
     );
   }
 
-  return null; // Fallback, should not be reached
+  // Render children if logged in or on the login page
+  return (
+    <AdminAuthContext.Provider value={{ isLoggedIn, user, login, logout }}>
+      {children}
+    </AdminAuthContext.Provider>
+  );
 }
 
 export function useAdminAuth() {

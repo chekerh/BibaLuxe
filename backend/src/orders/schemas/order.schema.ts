@@ -47,8 +47,8 @@ export interface TrackingInfo {
 
 @Schema({ timestamps: true })
 export class Order {
-  @Prop({ required: true, unique: true })
-  orderNumber: string; // Format: BBL-XXXXXX
+  @Prop({ required: true })
+  orderNumber: string; // Format: BBL-XXXXXX (unique index defined below)
 
   @Prop({ type: MongooseSchema.Types.Mixed, required: true })
   shippingAddress: ShippingAddress;

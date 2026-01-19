@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   
   images: {
-    domains: ['localhost'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -13,7 +12,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'http',
-        hostname: '**',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
       },
     ],
   },

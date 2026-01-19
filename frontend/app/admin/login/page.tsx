@@ -1,7 +1,6 @@
 'use client';
 
 import { Button, Form, Input, Card, Typography, message } from 'antd';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { authApi } from '@/lib/api';
@@ -11,7 +10,6 @@ const { Title } = Typography;
 export default function AdminLoginPage() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const { login } = useAdminAuth();
 
   const onFinish = async (values: { username: string; password: string }) => {
@@ -22,10 +20,15 @@ export default function AdminLoginPage() {
         password: values.password,
       });
       
-      // Get user profile to get role
+      // Store token first so subsequent requests are authenticated
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('admin-token', response.access_token);
+      }
+      
+      // Now get user profile to get role (token is now available)
       const profile = await authApi.getProfile();
       
-        message.success('Login successful!');
+      message.success('Login successful!');
       login(response.access_token, profile.username, profile.role || 'admin');
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Invalid username or password.';
